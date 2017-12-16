@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.harshithgoka.youtubedl.MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:autoLink="web"
+        android:background="@android:color/background_dark"
+        android:fontFamily="monospace"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:text="Progress shows here ---->\n"
+        android:textColor="@android:color/holo_green_light"
+        android:textSize="19dp"
+        app:layout_constraintBottom_toTopOf="@+id/all_formats"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/url" />
+
+    <EditText
+        android:id="@+id/url"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="YouTube URL"
+        android:inputType="textUri"
+        android:text="https://www.youtube.com/watch?v=PVz4fL8JAR0"
+        app:layout_constraintEnd_toStartOf="@+id/button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="start"
+        android:textSize="20dp"
+        android:onClick="startPoint"
+        android:fontFamily="monospace"
+        android:textAllCaps="false"
+        app:layout_constraintBaseline_toBaselineOf="@+id/url"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="4dp"
+        android:textAllCaps="false"
+        android:background="@drawable/drawable_bg"
+        android:onClick="pasteFromClipboard"
+        app:layout_constraintBaseline_toBaselineOf="@+id/url"
+        app:layout_constraintEnd_toStartOf="@+id/download" />
+
+    <Button
+        android:id="@+id/all_formats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="8dp"
+        android:text="All Formats"
+        android:textAllCaps="false"
+        android:fontFamily="monospace"
+        android:onClick="showAllFormats"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</android.support.constraint.ConstraintLayout>
