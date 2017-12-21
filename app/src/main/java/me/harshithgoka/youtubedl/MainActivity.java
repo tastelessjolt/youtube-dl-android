@@ -7,12 +7,14 @@ import android.content.Intent;
 import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
     public String getID (String url) {
         Pattern pattern = Pattern.compile(_VALID_URL);
-        Matcher m = pattern.matcher("https://www.youtube.com/watch?v=6D_BFaAewLU");
+        Matcher m = pattern.matcher(url);
         m.find();
         return m.group(2);
     }
@@ -155,10 +157,80 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public String getSignatureCacheId (String s) {
+        // in Python
+        // return '.'.join(compat_str(len(part)) for part in example_sig.split('.'))
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String part : s.split("\\.")) {
+            stringBuilder.append(part.length() + ".");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        return stringBuilder.toString();
+    }
+
     class GetInfoAsyncTask extends AsyncTask<String, Void, List<Format>> {
+
+        public void parseSigJs(String response) {
+            // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+            //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
+            Pattern funcNamePattern = Pattern.compile("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(");
+            Matcher m = funcNamePattern.matcher(response);
+
+            String func_name;
+            if (m.find())
+                func_name = m.group(2);
+            else {
+                funcNamePattern = Pattern.compile("\\.sig\\|\\|(?<sig>[a-zA-Z0-9$]+)\\(");
+                m = funcNamePattern.matcher(response);
+                if (m.find())
+                    func_name = m.group(2);
+                else
+                    return;
+            }
+
+            // TODO: extract actual js function from script using some JS interpretor library
+
+        }
+
+        public void extractSignatureFunction(String video_id, String player_url, String s) {
+            Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
+            Matcher matcher = playerUrl.matcher(player_url);
+            if (!matcher.find())
+                return;
+
+            String player_id = matcher.group(1);
+            String player_type = matcher.group(2);
+
+            try {
+                String response = run(player_url);
+                parseSigJs(response);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         public void decryptSignature(String s, String video_id, String player_url) {
             // TODO: continue to get the function from player url
+            String TAG = "decryptSig";
+
+            if (player_url == null)
+                return;
+
+            if (player_url.startsWith("//"))
+                player_url = "https:" + player_url;
+
+            if (!player_url.matches("https?://"))
+                player_url = "https://www.youtube.com/" + player_url;
+
+            Pair<String, String> player_id = new Pair<> (player_url, getSignatureCacheId(s));
+
+
+            extractSignatureFunction(video_id, player_url, s);
+
+            Log.d(TAG, s);
+            Log.d(TAG, video_id);
+            Log.d(TAG, player_url);
+
         }
 
         @Override
@@ -213,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                         String encrypted_signature = query_pairs.get("s");
                         String videoID = getID(you_url);
 
-                        decryptSignature(encrypted_signature, videoID, you_url);
+                        decryptSignature(encrypted_signature, videoID, player_url);
 
                         continue;
                     }

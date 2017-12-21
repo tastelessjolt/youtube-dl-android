@@ -38,7 +38,7 @@
         android:ems="10"
         android:hint="YouTube URL"
         android:inputType="textUri"
-        android:text="https://www.youtube.com/watch?v=PVz4fL8JAR0"
+        android:text="https://www.youtube.com/watch?v=eiDiKwbGfIY"
         app:layout_constraintEnd_toStartOf="@+id/button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
