@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TooManyListenersException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
@@ -44,6 +45,51 @@ public class MainActivity extends AppCompatActivity {
     OkHttpClient client;
 
     List<Format> curr_formats;
+
+    String _VALID_URL = "(?x)^\n" +
+            " (\n" +
+            "     (?:https?://|//)                                    # http(s):// or protocol-independent URL\n" +
+            "     (?:(?:(?:(?:\\w+\\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\\.com/|\n" +
+            "        (?:www\\.)?deturl\\.com/www\\.youtube\\.com/|\n" +
+            "        (?:www\\.)?pwnyoutube\\.com/|\n" +
+            "        (?:www\\.)?hooktube\\.com/|\n" +
+            "        (?:www\\.)?yourepeat\\.com/|\n" +
+            "        tube\\.majestyc\\.net/|\n" +
+            "        youtube\\.googleapis\\.com/)                        # the various hostnames, with wildcard subdomains\n" +
+            "     (?:.*?\\#/)?                                          # handle anchor (#/) redirect urls\n" +
+            "     (?:                                                  # the various things that can precede the ID:\n" +
+            "         (?:(?:v|embed|e)/(?!videoseries))                # v/ or embed/ or e/\n" +
+            "         |(?:                                             # or the v= param in all its forms\n" +
+            "             (?:(?:watch|movie)(?:_popup)?(?:\\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)\n" +
+            "             (?:\\?|\\#!?)                                  # the params delimiter ? or # or #!\n" +
+            "             (?:.*?[&;])??                                # any other preceding param (like /?s=tuff&v=xxxx or ?s=tuff&amp;v=V36LpHqtcDY)\n" +
+            "             v=\n" +
+            "         )\n" +
+            "     ))\n" +
+            "     |(?:\n" +
+            "        youtu\\.be|                                        # just youtu.be/xxxx\n" +
+            "        vid\\.plus|                                        # or vid.plus/xxxx\n" +
+            "        zwearz\\.com/watch|                                # or zwearz.com/watch/xxxx\n" +
+            "     )/\n" +
+            "     |(?:www\\.)?cleanvideosearch\\.com/media/action/yt/watch\\?videoId=\n" +
+            "     )\n" +
+            " )?                                                       # all until now is optional -> you can pass the naked ID\n" +
+            " ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID\n" +
+            " (?!.*?\\blist=\n" +
+            "    (?:\n" +
+            "        %(playlist_id)s|                                  # combined list/video URLs are handled by the playlist IE\n" +
+            "        WL                                                # WL are handled by the watch later IE\n" +
+            "    )\n" +
+            " )\n" +
+            "                                                 # if we found the ID, everything can follow\n" +
+            " $";
+
+    public String getID (String url) {
+        Pattern pattern = Pattern.compile(_VALID_URL);
+        Matcher m = pattern.matcher("https://www.youtube.com/watch?v=6D_BFaAewLU");
+        m.find();
+        return m.group(2);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +156,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class GetInfoAsyncTask extends AsyncTask<String, Void, List<Format>> {
+
+        public void decryptSignature(String s, String video_id, String player_url) {
+            // TODO: continue to get the function from player url
+        }
+
         @Override
         protected List<Format> doInBackground(String... strings) {
             String you_url = strings[0];
@@ -147,7 +198,23 @@ public class MainActivity extends AppCompatActivity {
                     if (params.contains("sig"))
                         url += "&signature=" + query_pairs.get("sig");
                     else if (params.contains("s")) {
-                        // TODO: Handle encryted signature video links
+                        Pattern pattern = Pattern.compile("\"assets\":.+?\"js\":\\s*(\"[^\"]+\")");
+                        Matcher m = pattern.matcher(response);
+                        m.find();
+                        String player_url = m.group(1);
+                        player_url = new JSONObject("{ \"str\" :" + player_url + "}").getString("str");
+
+                        Pattern playerType = Pattern.compile("(html5player-([^/]+?)(?:/html5player(?:-new)?)?\\.js)|((?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\\.js)");
+                        m = playerType.matcher(player_url);
+                        m.find();
+
+                        String player_version = m.group();
+                        String player_desc = "html5 player " + player_version;
+                        String encrypted_signature = query_pairs.get("s");
+                        String videoID = getID(you_url);
+
+                        decryptSignature(encrypted_signature, videoID, you_url);
+
                         continue;
                     }
 
