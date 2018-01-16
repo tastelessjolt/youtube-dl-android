@@ -1,5 +1,6 @@
 package me.harshithgoka.youtubedl;
 
+import android.annotation.TargetApi;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -16,6 +17,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.webkit.ValueCallback;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -24,6 +27,7 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -36,15 +40,24 @@ import java.util.TooManyListenersException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import me.harshithgoka.youtubedl.Utils.Arg;
+import me.harshithgoka.youtubedl.Utils.Fun;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.Script;
+import org.mozilla.javascript.Scriptable;
+
 
 public class MainActivity extends AppCompatActivity {
 
     EditText urlEdit;
     TextView log;
     OkHttpClient client;
+    WebView webView;
 
     List<Format> curr_formats;
 
@@ -106,6 +119,8 @@ public class MainActivity extends AppCompatActivity {
         urlEdit = (EditText) findViewById(R.id.url);
 
         curr_formats = new ArrayList<>();
+
+        webView = (WebView) findViewById(R.id.webview);
     }
 
     private void println (String s) {
@@ -118,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
         println("Url: " + url);
 
-        AsyncTask<String, Void, List<Format>> asyncTask = new GetInfoAsyncTask();
+        AsyncTask<String, Void, List<Format>> asyncTask = new GetInfoAsyncTask(getApplicationContext(), webView);
         asyncTask.execute(url);
     }
 
@@ -169,6 +184,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class GetInfoAsyncTask extends AsyncTask<String, Void, List<Format>> {
+        Context context;
+        WebView webView;
+
+        public  GetInfoAsyncTask(Context context, WebView webView) {
+            this.context = context;
+            this.webView = webView;
+        }
+
 
         public void parseSigJs(String response) {
             // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
@@ -189,6 +212,47 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // TODO: extract actual js function from script using some JS interpretor library
+//            webView.loadUrl("javascript:" + response);
+//            webView.evaluateJavascript(func_name, new ValueCallback<String>() {
+//                @Override
+//                public void onReceiveValue(String s) {
+//                    Log.d("Result", s);
+//                }
+//            });
+
+
+            JSInterpreter jsInterpreter = new JSInterpreter(response);
+            Fun fun = jsInterpreter.extractFunction(func_name);
+            Arg arg = new Arg(">>>>> actual signature goes here <<<<<");
+            try {
+                jsInterpreter.callFunction(fun, new Arg[] {arg});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+//            org.mozilla.javascript.Context rhino = org.mozilla.javascript.Context.enter();
+//            //disabling the optimizer to better support Android.
+//            rhino.setOptimizationLevel(-1);
+//
+//            try {
+//
+//                Scriptable scope = rhino.initStandardObjects();
+//
+//                /**
+//                 * evaluateString(Scriptable scope, java.lang.String source, java.lang.String sourceName,
+//                 * int lineno, java.lang.Object securityDomain)
+//                 *
+//                 */
+//                rhino.evaluateString(scope, response, "JavaScript", 1, null);
+//
+//
+//                Function function = (Function) scope.get("evaluate", scope);
+//
+//            }
+//            catch (Exception e) {
+//
+//                e.printStackTrace();
+//            }
 
         }
 
