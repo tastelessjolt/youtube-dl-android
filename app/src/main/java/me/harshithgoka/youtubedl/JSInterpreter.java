@@ -3,15 +3,19 @@ package me.harshithgoka.youtubedl;
 import android.util.Log;
 import android.util.Pair;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import me.harshithgoka.youtubedl.Utils.Arg;
 import me.harshithgoka.youtubedl.Utils.Fun;
+
+import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
 /**
  * Created by harshithg on 16/1/18.
@@ -101,6 +105,7 @@ public class JSInterpreter {
         for (String stmt : split) {
             Pair<Arg, Boolean> ret = interpretStatement(stmt, local_vars, 100);
             res = ret.first;
+            Log.d(stmt, res.getString(VAL));
             if (ret.second) {
                 break;
             }
@@ -177,7 +182,46 @@ public class JSInterpreter {
             }
         }
 
-        return new Arg();
+        for (Iterator<String> it = ASSIGNMENT_OPS.keys(); it.hasNext(); ) {
+            String op = it.next();
+            String assgn = String.format("(?x)\n" +
+                    "                (?<out>%s)(?:\\[(?<index>[^\\]]+?)\\])?\n" +
+                    "                \\s*%s\n" +
+                    "                (?<expr>.*)$", _NAME_RE, Pattern.quote(op));
+            Pattern p = Pattern.compile(assgn);
+            Matcher m = p.matcher(expr);
+            Arg right_val;
+            if (m.find()) {
+                right_val = interpretExpression(m.group(3), local_vars, allowRecursion - 1);
+            } else {
+                continue;
+            }
+
+            if (m.group(2) != null) {
+                JSONArray lvar = local_vars.getJSONArray(m.group(1));
+                Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion);
+
+                int index = idx.getInt(VAL);
+                JSONObject curr = lvar.getJSONObject(index);
+                // TODO: Do actual operations on (curr, right_val) and put them back in lvar[index]
+            }
+            else {
+                Arg cur = (Arg) local_vars.getJSONObject(m.group(1));
+                // TODO: Do actual operations on (curr, right_val) and put them back in local_vars
+
+            }
+
+            try {
+                int i = Integer.parseInt(expr);
+                return new Arg(i);
+            }
+            catch (Exception e) {
+
+            }
+
+        }
+
+        return new Arg(expr);
     }
 
 
