@@ -3,12 +3,10 @@ package me.harshithgoka.youtubedl;
 import android.util.Log;
 import android.util.Pair;
 
+import org.json.JSONException;
 import org.json.JSONObject;
-import org.mozilla.javascript.FunctionObject;
-import org.mozilla.javascript.Parser;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,8 +23,48 @@ public class JSInterpreter {
 
     String _NAME_RE = "[a-zA-Z_$][a-zA-Z_$0-9]*";
 
+    String _OPS = "{ \n" +
+            "\t\"|\": \"op\",\n" +
+            "\t\"^\": \"op\",\n" +
+            "\t\"&\": \"op\",\n" +
+            "\t\">>\": \"op\",\n" +
+            "\t\"<<\": \"op\",\n" +
+            "\t\"-\": \"op\",\n" +
+            "\t\"+\": \"op\",\n" +
+            "\t\"%\": \"op\",\n" +
+            "\t\"/\": \"op\",\n" +
+            "\t\"*\": \"op\"\n" +
+            "}";
+    String _ASSIGNMENT_OPS = "{ \n" +
+            "\t\"|=\": \"op\",\n" +
+            "\t\"^=\": \"op\",\n" +
+            "\t\"&=\": \"op\",\n" +
+            "\t\">>=\": \"op\",\n" +
+            "\t\"<<=\": \"op\",\n" +
+            "\t\"-=\": \"op\",\n" +
+            "\t\"+=\": \"op\",\n" +
+            "\t\"%=\": \"op\",\n" +
+            "\t\"/=\": \"op\",\n" +
+            "\t\"*=\": \"op\",\n" +
+            "\t\"=\": \"op\"\n" +
+            "}";
+
+    JSONObject OPS;
+    JSONObject ASSIGNMENT_OPS;
+
     JSInterpreter(String code) {
         this.code = code;
+        try {
+            OPS = new JSONObject(_OPS);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ASSIGNMENT_OPS = new JSONObject(_ASSIGNMENT_OPS);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public Fun extractFunction(String funcname) {
@@ -53,12 +91,12 @@ public class JSInterpreter {
             throw new Exception("Incorrect number of arguments passed");
         }
 
-        HashMap<String, Arg> local_vars = new HashMap<>();
+        JSONObject local_vars = new JSONObject();
         for (int i = 0; i != args.length; i++) {
             local_vars.put(func.argnames[i], args[i]);
         }
 
-        Arg res = new Arg("");
+        Arg res = new Arg();
         String[] split = func.code.split(";");
         for (String stmt : split) {
             Pair<Arg, Boolean> ret = interpretStatement(stmt, local_vars, 100);
@@ -71,7 +109,7 @@ public class JSInterpreter {
         return res;
     }
 
-    public Pair<Arg,Boolean> interpretStatement(String stmt, HashMap<String, Arg> local_vars, int allowRecursion) throws Exception {
+    public Pair interpretStatement(String stmt, JSONObject local_vars, int allowRecursion) throws Exception {
         Log.d("JSParser", stmt);
 
 
@@ -101,10 +139,10 @@ public class JSInterpreter {
 
         Arg arg = interpretExpression(expr, local_vars, allowRecursion);
 
-        return new Pair(arg, should_abort);
+        return new Pair<Arg, Boolean>(arg, should_abort);
     }
 
-    private Arg interpretExpression(String expr, HashMap<String, Arg> local_vars, int allowRecursion) throws Exception {
+    private Arg interpretExpression(String expr, JSONObject local_vars, int allowRecursion) throws Exception {
         expr = expr.trim();
 
         if (expr.equals("")) {
@@ -129,8 +167,7 @@ public class JSInterpreter {
                             return sub_result;
                         }
                         else {
-                            // TODO Replace all Arg usage with a JSONObject! xD
-                            expr = Arg.class.getCanonicalName() + remaining_expr;
+                            expr = sub_result.toString() + remaining_expr;
                         }
                     }
                 }
@@ -138,11 +175,9 @@ public class JSInterpreter {
             if (parens_count > 0) {
                 throw new Exception("Premature end of parens in " + expr);
             }
-
-
         }
 
-        return new Arg("");
+        return new Arg();
     }
 
 
