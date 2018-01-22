@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import me.harshithgoka.youtubedl.Utils.Arg;
 import me.harshithgoka.youtubedl.Utils.Fun;
+import me.harshithgoka.youtubedl.Utils.Utils;
 
 import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
@@ -55,6 +56,7 @@ public class JSInterpreter {
 
     JSONObject OPS;
     JSONObject ASSIGNMENT_OPS;
+    JSONObject objects;
 
     JSInterpreter(String code) {
         this.code = code;
@@ -69,6 +71,8 @@ public class JSInterpreter {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        objects = new JSONObject();
     }
 
     public Fun extractFunction(String funcname) {
@@ -198,30 +202,191 @@ public class JSInterpreter {
             }
 
             if (m.group(2) != null) {
-                JSONArray lvar = local_vars.getJSONArray(m.group(1));
+                Arg lvar = (Arg) local_vars.getJSONObject(m.group(1));
                 Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion);
 
                 int index = idx.getInt(VAL);
-                JSONObject curr = lvar.getJSONObject(index);
-                // TODO: Do actual operations on (curr, right_val) and put them back in lvar[index]
+                Arg curr = (Arg) lvar.getJSONArray(VAL).get(index);
+                Arg val = opFunc(op, curr, right_val);
+                lvar.getJSONArray(VAL).put(index, val);
+                return val;
             }
             else {
-                Arg cur = (Arg) local_vars.getJSONObject(m.group(1));
-                // TODO: Do actual operations on (curr, right_val) and put them back in local_vars
-
+                Arg curr = (Arg) local_vars.getJSONObject(m.group(1));
+                Arg val = opFunc(op, curr, right_val);
+                local_vars.put(m.group(1), val);
+                return val;
             }
+        }
 
-            try {
-                int i = Integer.parseInt(expr);
-                return new Arg(i);
+        try {
+            int i = Integer.parseInt(expr);
+            return new Arg(i);
+        }
+        catch (Exception e) {
+
+        }
+
+        Pattern control = Pattern.compile(String.format("(?!if|return|true|false)(?<name>%s)$", _NAME_RE));
+        Matcher m = control.matcher(expr);
+        if (m.find() ) {
+            if (m.group(1) != null) {
+                return (Arg) local_vars.get(m.group(1));
             }
-            catch (Exception e) {
+        }
+
+        try {
+            Arg ret = (Arg) new JSONObject(expr);
+            return ret;
+        }
+        catch (Exception e) {
+
+        }
+
+        Pattern var_arr = Pattern.compile(String.format("(?<in>%s)\\[(?<idx>.+)\\]$", _NAME_RE));
+        m = var_arr.matcher(expr);
+        if (m.find()) {
+            if (m.group(1) != null && m.group(2) != null) {
+                Arg val = (Arg) local_vars.get(m.group(1));
+                Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion - 1);
+                int index = idx.getInt(VAL);
+                return (Arg) val.getJSONArray(VAL).get(index);
+            }
+        }
+
+        Pattern var_dec = Pattern.compile(String.format("(?P<var>%s)(?:\\.(?P<member>[^(]+)|\\[(?P<member2>[^]]+)\\])\\s*(?:\\(+(?P<args>[^()]*)\\))?$", _NAME_RE));
+        m = var_dec.matcher(expr);
+
+        if (m.find()) {
+            if (m.group(1) != null) {
+                String variable = m.group(1);
+                String member = Utils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
+                String arg_str = m.group(3);
+
+                JSONObject obj;
+                if (local_vars.has(variable)) {
+                    obj = (Arg) local_vars.get(variable);
+                    obj = obj.getJSONObject(VAL);
+                }
+                else {
+                    if (!objects.has(variable)) {
+                        objects.put(variable, extractObject(variable));
+                    }
+                    obj = (JSONObject) objects.get(variable);
+                }
 
             }
 
         }
 
+
         return new Arg(expr);
+    }
+
+    Arg opFunc (String op, Arg cur, Arg right_val) {
+        Arg ret = new Arg();
+        // TODO: do actual operations here
+
+        if (op.equals("|=") | op.equals("|")) {
+            try {
+                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (op.equals("^=") | op.equals("|")) {
+            try {
+                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (op.equals("&=")) {
+            try {
+                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (op.equals(">>=")) {
+
+        }
+        else if (op.equals("<<=")) {
+
+        }
+        else if (op.equals("-=")) {
+
+        }
+        else if (op.equals("+=")) {
+
+        }
+        else if (op.equals("%=")) {
+
+        }
+        else if (op.equals("/=")) {
+
+        }
+        else if (op.equals("*=")) {
+
+        }
+        else if (op.equals("=")) {
+
+        }
+
+            return ret;
+    }
+
+
+    /*
+    def extract_object(self, objname):
+        _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
+        obj = {}
+        obj_m = re.search(
+            r'''(?x)
+                (?<!this\.)%s\s*=\s*{\s*
+                    (?P<fields>(%s\s*:\s*function\s*\(.*?\)\s*{.*?}(?:,\s*)?)*)
+                }\s*;
+            ''' % (re.escape(objname), _FUNC_NAME_RE),
+            self.code)
+        fields = obj_m.group('fields')
+        # Currently, it only supports function definitions
+        fields_m = re.finditer(
+            r'''(?x)
+                (?P<key>%s)\s*:\s*function\s*\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}
+            ''' % _FUNC_NAME_RE,
+            fields)
+        for f in fields_m:
+            argnames = f.group('args').split(',')
+            obj[remove_quotes(f.group('key'))] = self.build_function(argnames, f.group('code'))
+
+        return obj
+
+     */
+
+    JSONObject extractObject (String objname) {
+        JSONObject obj = new JSONObject();
+        String _FUNC_NAME_RE = "(?:[a-zA-Z$0-9]+|\"[a-zA-Z$0-9]+\"|'[a-zA-Z$0-9]+')";
+        Pattern objpatt = Pattern.compile(String.format("(?x)\n" +
+                "                (?<!this\\.)%s\\s*=\\s*{\\s*\n" +
+                "                    (?<fields>(%s\\s*:\\s*function\\s*\\(.*?\\)\\s*{.*?}(?:,\\s*)?)*)\n" +
+                "                }\\s*;", Pattern.quote(objname), _FUNC_NAME_RE));
+        Matcher m = objpatt.matcher(code);
+        if (m.find()) {
+            String fields = m.group(1);
+            Pattern field_pat = Pattern.compile(String.format("(?x)\n" +
+                    "                (?<key>%s)\\s*:\\s*function\\s*\\((?<args>[a-z,]+)\\){(?<code>[^}]+)}", _FUNC_NAME_RE));
+            m = objpatt.matcher(fields);
+            while (m.find()) {
+                String[] args = m.group(2).split(",");
+                try {
+                    obj.put(Utils.removeQuotes(m.group(1)), new Fun(m.group(1), args, m.group(3)));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+        return obj;
     }
 
 
