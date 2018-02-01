@@ -7,11 +7,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import kotlin.TuplesKt;
 import me.harshithgoka.youtubedl.Utils.Arg;
 import me.harshithgoka.youtubedl.Utils.Fun;
 import me.harshithgoka.youtubedl.Utils.Utils;
@@ -254,7 +257,7 @@ public class JSInterpreter {
             }
         }
 
-        Pattern var_dec = Pattern.compile(String.format("(?P<var>%s)(?:\\.(?P<member>[^(]+)|\\[(?P<member2>[^]]+)\\])\\s*(?:\\(+(?P<args>[^()]*)\\))?$", _NAME_RE));
+        Pattern var_dec = Pattern.compile(String.format("(?<var>%s)(?:\\.(?<member>[^(]+)|\\[(?<member2>[^]]+)\\])\\s*(?:\\(+(?<args>[^()]*)\\))?$", _NAME_RE));
         m = var_dec.matcher(expr);
 
         if (m.find()) {
@@ -274,6 +277,121 @@ public class JSInterpreter {
                     }
                     obj = (JSONObject) objects.get(variable);
                 }
+
+                if (m.group(4) == null) {
+                    if (member.equals("length")){
+                        return new Arg(obj.getString(VAL).length());
+                    }
+
+                    return (Arg) obj.getJSONObject(member);
+                }
+
+                assert (expr.endsWith(")"));
+
+                List<Arg> argvals = new ArrayList<>();
+
+                if (!arg_str.equals("")) {
+                    for (String s: arg_str.split(",")) {
+                        argvals.add(interpretExpression(s, local_vars, allowRecursion));
+                    }
+                }
+
+                if (member.equals("split")) {
+                    assert argvals.size() == 1;
+                    assert argvals.get(0).getString(VAL).equals("");
+
+                    JSONArray temp = new JSONArray();
+                    String target = obj.getString(VAL);
+                    for (char c: target.toCharArray()) {
+                        temp.put(new Arg(c));
+                    }
+                    Arg ret = new Arg();
+                    ret.put(VAL, temp);
+                    return ret;
+                }
+
+                if (member.equals("join")) {
+                    assert argvals.size() == 1;
+                    try {
+                        String s = obj.getString(VAL);
+
+                        String joindelim = argvals.get(0).getString(VAL);
+
+                        StringBuilder out = new StringBuilder();
+
+                        for (int i = 0; i < s.length(); i++) {
+                            out.append(s.charAt(i));
+                            if (i != s.length() - 1) {
+                                out.append(joindelim);
+                            }
+                        }
+
+                        return new Arg(out.toString());
+                    }
+                    catch (Exception e) {
+                        JSONArray jsonArray = obj.getJSONArray(VAL);
+
+                        String joindelim = argvals.get(0).getString(VAL);
+
+                        StringBuilder out = new StringBuilder();
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            out.append(jsonArray.getJSONObject(i).get(VAL));
+                            if (i != jsonArray.length() - 1) {
+                                out.append(joindelim);
+                            }
+                        }
+
+                        return new Arg(out.toString());
+                    }
+                }
+
+                if (member.equals("reverse")) {
+                    assert argvals.size() == 0;
+
+                    JSONArray objArray = obj.getJSONArray(VAL);
+                    JSONArray revArray = new JSONArray();
+                    for (int i = objArray.length() - 1; i >= 0; i++) {
+                        revArray.put(objArray.get(i));
+                    }
+                    obj.put(VAL, revArray);
+
+                    return (Arg) obj;
+                }
+
+                if (member.equals("slice")) {
+                    assert argvals.size() == 1;
+                    try {
+                        int start = argvals.get(0).getInt(VAL);
+                        String s = obj.getString(VAL);
+                        return new Arg(s.substring(start));
+                    }
+                    catch (Exception e) {
+                        int start = argvals.get(0).getInt(VAL);
+                        JSONArray array = obj.getJSONArray(VAL);
+                        JSONArray retArray = new JSONArray();
+                        for (int i = start; i < array.length(); i++) {
+                            retArray.put(array.get(i));
+                        }
+                        return new Arg(retArray);
+                    }
+                }
+
+                if (member.equals("splice")) {
+                    assert obj.get(VAL).getClass().equals(JSONArray.class);
+                    int index = argvals.get(0).getInt(VAL);
+                    int howMany = argvals.get(1).getInt(VAL);
+
+                    JSONArray jsonArray = obj.getJSONArray(VAL);
+                    JSONArray ret = new JSONArray();
+                    for (int i = 0; i < Math.min(index + howMany, jsonArray.length()); i++) {
+                        ret.put(jsonArray.remove(index));
+                    }
+
+                    return new Arg(ret);
+                }
+
+                return (Arg) obj.get(member);
 
             }
 
