@@ -27,7 +27,7 @@ import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
 public class JSInterpreter {
     String code;
-    HashMap<String, Fun> functions;
+    JSONObject functions;
 
     String _NAME_RE = "[a-zA-Z_$][a-zA-Z_$0-9]*";
 
@@ -76,6 +76,7 @@ public class JSInterpreter {
         }
 
         objects = new JSONObject();
+        functions = new JSONObject();
     }
 
     public Fun extractFunction(String funcname) {
@@ -124,7 +125,6 @@ public class JSInterpreter {
     public Pair interpretStatement(String stmt, JSONObject local_vars, int allowRecursion) throws Exception {
         Log.d("JSParser", stmt);
 
-
         if (allowRecursion < 0) {
             throw new Exception("Recursion limit reached");
         }
@@ -155,6 +155,7 @@ public class JSInterpreter {
     }
 
     private Arg interpretExpression(String expr, JSONObject local_vars, int allowRecursion) throws Exception {
+        Log.d("IE", expr);
         expr = expr.trim();
 
         if (expr.equals("")) {
@@ -238,12 +239,26 @@ public class JSInterpreter {
             }
         }
 
+//        try {
+//            // For now, :\
+////            Arg ret = (Arg) new JSONObject(expr);
+//            Arg ret = new Arg(expr);
+//            return ret;
+//        }
+//        catch (Exception e) {
+//
+//        }
+
         try {
             Arg ret = (Arg) new JSONObject(expr);
             return ret;
         }
-        catch (Exception e) {
-
+        catch (JSONException j) {
+            Pattern strpattern = Pattern.compile("^\"(?<str>[^\"]*)\"$");
+            m = strpattern.matcher(expr);
+            if (m.find()) {
+                return new Arg(m.group(1));
+            }
         }
 
         Pattern var_arr = Pattern.compile(String.format("(?<in>%s)\\[(?<idx>.+)\\]$", _NAME_RE));
@@ -264,12 +279,12 @@ public class JSInterpreter {
             if (m.group(1) != null) {
                 String variable = m.group(1);
                 String member = Utils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
-                String arg_str = m.group(3);
+                String arg_str = m.group(4);
 
                 JSONObject obj;
                 if (local_vars.has(variable)) {
                     obj = (Arg) local_vars.get(variable);
-                    obj = obj.getJSONObject(VAL);
+//                    obj = obj.getJSONObject(VAL);
                 }
                 else {
                     if (!objects.has(variable)) {
@@ -288,17 +303,20 @@ public class JSInterpreter {
 
                 assert (expr.endsWith(")"));
 
-                List<Arg> argvals = new ArrayList<>();
+                List<Arg> argvalbuilder = new ArrayList<>();
 
                 if (!arg_str.equals("")) {
                     for (String s: arg_str.split(",")) {
-                        argvals.add(interpretExpression(s, local_vars, allowRecursion));
+                        argvalbuilder.add(interpretExpression(s, local_vars, allowRecursion));
                     }
                 }
 
+                Arg[] argvals = new Arg[argvalbuilder.size()];
+                argvals = argvalbuilder.toArray(argvals);
+
                 if (member.equals("split")) {
-                    assert argvals.size() == 1;
-                    assert argvals.get(0).getString(VAL).equals("");
+                    assert argvals.length == 1;
+                    assert argvals[0].getString(VAL).equals("\"\"");
 
                     JSONArray temp = new JSONArray();
                     String target = obj.getString(VAL);
@@ -311,11 +329,11 @@ public class JSInterpreter {
                 }
 
                 if (member.equals("join")) {
-                    assert argvals.size() == 1;
+                    assert argvals.length == 1;
                     try {
                         String s = obj.getString(VAL);
 
-                        String joindelim = argvals.get(0).getString(VAL);
+                        String joindelim = argvals[0].getString(VAL);
 
                         StringBuilder out = new StringBuilder();
 
@@ -331,7 +349,7 @@ public class JSInterpreter {
                     catch (Exception e) {
                         JSONArray jsonArray = obj.getJSONArray(VAL);
 
-                        String joindelim = argvals.get(0).getString(VAL);
+                        String joindelim = argvals[0].getString(VAL);
 
                         StringBuilder out = new StringBuilder();
 
@@ -347,7 +365,7 @@ public class JSInterpreter {
                 }
 
                 if (member.equals("reverse")) {
-                    assert argvals.size() == 0;
+                    assert argvals.length == 0;
 
                     JSONArray objArray = obj.getJSONArray(VAL);
                     JSONArray revArray = new JSONArray();
@@ -360,14 +378,14 @@ public class JSInterpreter {
                 }
 
                 if (member.equals("slice")) {
-                    assert argvals.size() == 1;
+                    assert argvals.length == 1;
                     try {
-                        int start = argvals.get(0).getInt(VAL);
+                        int start = argvals[0].getInt(VAL);
                         String s = obj.getString(VAL);
                         return new Arg(s.substring(start));
                     }
                     catch (Exception e) {
-                        int start = argvals.get(0).getInt(VAL);
+                        int start = argvals[0].getInt(VAL);
                         JSONArray array = obj.getJSONArray(VAL);
                         JSONArray retArray = new JSONArray();
                         for (int i = start; i < array.length(); i++) {
@@ -379,8 +397,8 @@ public class JSInterpreter {
 
                 if (member.equals("splice")) {
                     assert obj.get(VAL).getClass().equals(JSONArray.class);
-                    int index = argvals.get(0).getInt(VAL);
-                    int howMany = argvals.get(1).getInt(VAL);
+                    int index = argvals[0].getInt(VAL);
+                    int howMany = argvals[1].getInt(VAL);
 
                     JSONArray jsonArray = obj.getJSONArray(VAL);
                     JSONArray ret = new JSONArray();
@@ -391,14 +409,65 @@ public class JSInterpreter {
                     return new Arg(ret);
                 }
 
-                return (Arg) obj.get(member);
-
+                return callFunction(((Fun) obj.get(member)), argvals);
             }
-
         }
 
+        for (Iterator<String> it = OPS.keys(); it.hasNext(); ) {
+            String op = it.next();
+            Pattern pattOp = Pattern.compile(String.format("(?<x>.+?)%s(?<y>.+)", Pattern.quote(op)));
+            m = pattOp.matcher(expr);
+            if (!m.find()) {
+                continue;
+            }
+            Pair ret = interpretStatement(m.group(1), local_vars, allowRecursion - 1);
+            Arg x = (Arg) ret.first;
+            boolean abort = (Boolean) ret.second;
 
-        return new Arg(expr);
+            if (abort) {
+                throw new Exception(String.format("Premature left-side return of %s in %s", op, expr));
+            }
+            ret = interpretStatement(m.group(2), local_vars, allowRecursion - 1);
+            Arg y = (Arg) ret.first;
+            abort = (Boolean) ret.second;
+
+            if (abort) {
+                throw new Exception(String.format("Premature right-side return of %s in %s", op, expr));
+            }
+
+            return opFunc(op, x, y);
+        }
+
+        Pattern callFunc = Pattern.compile(String.format("^(?<func>%s)\\((?<args>[a-zA-Z0-9_$,]*)\\)$", _NAME_RE));
+        m = callFunc.matcher(expr);
+        if (m.find()) {
+            String fname = m.group(1);
+            String args = m.group(2);
+
+            ArrayList<Arg> arrayBuilder = new ArrayList<>();
+            if (!args.equals("")) {
+                for (String v : args.split(",")) {
+                    try {
+                        int temp = Integer.parseInt(v);
+                        arrayBuilder.add(new Arg(temp));
+                    }
+                    catch (Exception e) {
+                        arrayBuilder.add((Arg) local_vars.get(v));
+                    }
+                }
+            }
+
+            Arg[] argvals = new Arg[arrayBuilder.size()];
+            argvals = arrayBuilder.toArray(argvals);
+
+            if (!functions.has(fname)) {
+                functions.put(fname, extractFunction(fname));
+            }
+
+            return callFunction((Fun) functions.get(fname), argvals);
+        }
+
+        throw new Exception(String.format("Unsupported JS expression %s", expr));
     }
 
     Arg opFunc (String op, Arg cur, Arg right_val) {
@@ -407,51 +476,105 @@ public class JSInterpreter {
 
         if (op.equals("|=") | op.equals("|")) {
             try {
-                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+                cur.put(VAL, cur.getInt(VAL) | right_val.getInt(VAL));
+                return cur;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("^=") | op.equals("|")) {
             try {
-                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+                cur.put(VAL, cur.getInt(VAL) ^ right_val.getInt(VAL));
+                return cur;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("&=")) {
             try {
-                ret = new Arg(cur.getInt(VAL) | right_val.getInt(VAL));
+                cur.put(VAL, cur.getInt(VAL) & right_val.getInt(VAL));
+                return cur;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals(">>=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) >> right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("<<=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) << right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("-=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) - right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("+=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) + right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("%=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) % right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("/=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) / right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("*=")) {
-
+            try {
+                cur.put(VAL, cur.getInt(VAL) * right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if (op.equals("=")) {
-
+            try {
+                cur.put(VAL, right_val.getInt(VAL));
+                return cur;
+            } catch (JSONException e) {
+                try {
+                    cur.put(VAL, right_val.getString(VAL));
+                    return cur;
+                }
+                catch (JSONException e1) {
+                    try {
+                        cur.put(VAL, right_val.get(VAL));
+                    } catch (JSONException e2) {
+                        e2.printStackTrace();
+                    }
+                }
+                e.printStackTrace();
+            }
         }
 
-            return ret;
+        return ret;
     }
 
 
@@ -485,23 +608,22 @@ public class JSInterpreter {
         JSONObject obj = new JSONObject();
         String _FUNC_NAME_RE = "(?:[a-zA-Z$0-9]+|\"[a-zA-Z$0-9]+\"|'[a-zA-Z$0-9]+')";
         Pattern objpatt = Pattern.compile(String.format("(?x)\n" +
-                "                (?<!this\\.)%s\\s*=\\s*{\\s*\n" +
-                "                    (?<fields>(%s\\s*:\\s*function\\s*\\(.*?\\)\\s*{.*?}(?:,\\s*)?)*)\n" +
-                "                }\\s*;", Pattern.quote(objname), _FUNC_NAME_RE));
+                "                (?<!this\\.)%s\\s*=\\s*\\{\\s*\n" +
+                "                    (?<fields>(%s\\s*:\\s*function\\s*\\(.*?\\)\\s*\\{.*?\\}(?:,\\s*)?)*)\n" +
+                "                \\}\\s*;", Pattern.quote(objname), _FUNC_NAME_RE));
         Matcher m = objpatt.matcher(code);
         if (m.find()) {
             String fields = m.group(1);
             Pattern field_pat = Pattern.compile(String.format("(?x)\n" +
-                    "                (?<key>%s)\\s*:\\s*function\\s*\\((?<args>[a-z,]+)\\){(?<code>[^}]+)}", _FUNC_NAME_RE));
-            m = objpatt.matcher(fields);
-            while (m.find()) {
-                String[] args = m.group(2).split(",");
+                    "                (?<key>%s)\\s*:\\s*function\\s*\\((?<args>[a-z,]+)\\)\\{(?<code>[^}]+)\\}", _FUNC_NAME_RE));
+            Matcher m1 = field_pat.matcher(fields);
+            while (m1.find()) {
+                String[] args = m1.group(2).split(",");
                 try {
-                    obj.put(Utils.removeQuotes(m.group(1)), new Fun(m.group(1), args, m.group(3)));
+                    obj.put(Utils.removeQuotes(m1.group(1)), new Fun(m1.group(1), args, m1.group(3)));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
             }
         }
         return obj;

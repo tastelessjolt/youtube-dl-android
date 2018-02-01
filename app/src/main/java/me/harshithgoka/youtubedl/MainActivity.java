@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        public void parseSigJs(String response) {
+        public void parseSigJs(String response, String sig) {
             // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
             //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
             Pattern funcNamePattern = Pattern.compile("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(");
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
             JSInterpreter jsInterpreter = new JSInterpreter(response);
             Fun fun = jsInterpreter.extractFunction(func_name);
-            Arg arg = new Arg(">>>>> actual signature goes here <<<<<");
+            Arg arg = new Arg(sig);
             try {
                 jsInterpreter.callFunction(fun, new Arg[] {arg});
             } catch (Exception e) {
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 String response = run(player_url);
-                parseSigJs(response);
+                parseSigJs(response, s);
             } catch (IOException e) {
                 e.printStackTrace();
             }
