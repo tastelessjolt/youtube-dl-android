@@ -216,7 +216,7 @@ public class JSInterpreter {
                 return val;
             }
             else {
-                Arg curr = (Arg) local_vars.getJSONObject(m.group(1));
+                Arg curr = (Arg) local_vars.opt(m.group(1));
                 Arg val = opFunc(op, curr, right_val);
                 local_vars.put(m.group(1), val);
                 return val;
@@ -233,9 +233,11 @@ public class JSInterpreter {
 
         Pattern control = Pattern.compile(String.format("(?!if|return|true|false)(?<name>%s)$", _NAME_RE));
         Matcher m = control.matcher(expr);
-        if (m.find() ) {
-            if (m.group(1) != null) {
-                return (Arg) local_vars.get(m.group(1));
+        if (m.find()) {
+            if (m.group(0).length() == expr.length()) {
+                if (m.group(1) != null) {
+                    return (Arg) local_vars.get(m.group(1));
+                }
             }
         }
 
@@ -295,7 +297,12 @@ public class JSInterpreter {
 
                 if (m.group(4) == null) {
                     if (member.equals("length")){
-                        return new Arg(obj.getString(VAL).length());
+                        try {
+                            return new Arg(obj.getJSONArray(VAL).length());
+                        }
+                        catch (JSONException e) {
+                            return new Arg(obj.getString(VAL).length());
+                        }
                     }
 
                     return (Arg) obj.getJSONObject(member);
@@ -321,7 +328,7 @@ public class JSInterpreter {
                     JSONArray temp = new JSONArray();
                     String target = obj.getString(VAL);
                     for (char c: target.toCharArray()) {
-                        temp.put(new Arg(c));
+                        temp.put(new Arg(c + ""));
                     }
                     Arg ret = new Arg();
                     ret.put(VAL, temp);
@@ -476,100 +483,89 @@ public class JSInterpreter {
 
         if (op.equals("|=") | op.equals("|")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) | right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) | right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("^=") | op.equals("|")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) ^ right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) ^ right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("&=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) & right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) & right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals(">>=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) >> right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) >> right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("<<=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) << right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) << right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("-=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) - right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) - right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("+=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) + right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) + right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("%=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) % right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) % right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("/=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) / right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) / right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("*=")) {
             try {
-                cur.put(VAL, cur.getInt(VAL) * right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, cur.getInt(VAL) * right_val.getInt(VAL));
+                return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         else if (op.equals("=")) {
             try {
-                cur.put(VAL, right_val.getInt(VAL));
-                return cur;
+                ret.put(VAL, right_val.get(VAL));
+                return ret;
             } catch (JSONException e) {
-                try {
-                    cur.put(VAL, right_val.getString(VAL));
-                    return cur;
-                }
-                catch (JSONException e1) {
-                    try {
-                        cur.put(VAL, right_val.get(VAL));
-                    } catch (JSONException e2) {
-                        e2.printStackTrace();
-                    }
-                }
                 e.printStackTrace();
             }
         }
