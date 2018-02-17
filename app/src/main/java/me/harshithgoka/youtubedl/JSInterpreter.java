@@ -61,6 +61,16 @@ public class JSInterpreter {
     JSONObject ASSIGNMENT_OPS;
     JSONObject objects;
 
+    public Fun getSigFun() {
+        return sigFun;
+    }
+
+    public void setSigFun(Fun sigFun) {
+        this.sigFun = sigFun;
+    }
+
+    Fun sigFun;
+
     JSInterpreter(String code) {
         this.code = code;
         try {
@@ -326,22 +336,6 @@ public class JSInterpreter {
                 if (member.equals("join")) {
                     assert argvals.length == 1;
                     try {
-                        String s = obj.getString(VAL);
-
-                        String joindelim = argvals[0].getString(VAL);
-
-                        StringBuilder out = new StringBuilder();
-
-                        for (int i = 0; i < s.length(); i++) {
-                            out.append(s.charAt(i));
-                            if (i != s.length() - 1) {
-                                out.append(joindelim);
-                            }
-                        }
-
-                        return new Arg(out.toString());
-                    }
-                    catch (Exception e) {
                         JSONArray jsonArray = obj.getJSONArray(VAL);
 
                         String joindelim = argvals[0].getString(VAL);
@@ -351,6 +345,22 @@ public class JSInterpreter {
                         for (int i = 0; i < jsonArray.length(); i++) {
                             out.append(jsonArray.getJSONObject(i).get(VAL));
                             if (i != jsonArray.length() - 1) {
+                                out.append(joindelim);
+                            }
+                        }
+
+                        return new Arg(out.toString());
+                    }
+                    catch (Exception e) {
+                        String s = obj.getString(VAL);
+
+                        String joindelim = argvals[0].getString(VAL);
+
+                        StringBuilder out = new StringBuilder();
+
+                        for (int i = 0; i < s.length(); i++) {
+                            out.append(s.charAt(i));
+                            if (i != s.length() - 1) {
                                 out.append(joindelim);
                             }
                         }

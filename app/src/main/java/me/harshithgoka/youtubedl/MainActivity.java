@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
+
+import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -99,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
             "                                                 # if we found the ID, everything can follow\n" +
             " $";
 
+    HashMap<Pair<String, String>, JSInterpreter> player_cache;
+
     public String getID (String url) {
         Pattern pattern = Pattern.compile(_VALID_URL);
         Matcher m = pattern.matcher(url);
@@ -121,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         curr_formats = new ArrayList<>();
 
         webView = (WebView) findViewById(R.id.webview);
+        player_cache = new HashMap<>();
     }
 
     private void println (String s) {
@@ -193,23 +199,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        public void parseSigJs(String response, String sig) {
+        public JSInterpreter parseSigJs(String response) {
             // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
             //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
-            Pattern funcNamePattern = Pattern.compile("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(");
-            Matcher m = funcNamePattern.matcher(response);
 
-            String func_name;
-            if (m.find())
-                func_name = m.group(2);
-            else {
-                funcNamePattern = Pattern.compile("\\.sig\\|\\|(?<sig>[a-zA-Z0-9$]+)\\(");
-                m = funcNamePattern.matcher(response);
-                if (m.find())
-                    func_name = m.group(2);
-                else
-                    return;
-            }
 
             // TODO: extract actual js function from script using some JS interpretor library
 //            webView.loadUrl("javascript:" + response);
@@ -222,13 +215,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             JSInterpreter jsInterpreter = new JSInterpreter(response);
-            Fun fun = jsInterpreter.extractFunction(func_name);
-            Arg arg = new Arg(sig);
-            try {
-                jsInterpreter.callFunction(fun, new Arg[] {arg});
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            return jsInterpreter;
 
 //            org.mozilla.javascript.Context rhino = org.mozilla.javascript.Context.enter();
 //            //disabling the optimizer to better support Android.
@@ -256,29 +243,78 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        public void extractSignatureFunction(String video_id, String player_url, String s) {
-            Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
-            Matcher matcher = playerUrl.matcher(player_url);
-            if (!matcher.find())
-                return;
-
-            String player_id = matcher.group(1);
-            String player_type = matcher.group(2);
-
-            try {
-                String response = run(player_url);
-                parseSigJs(response, s);
-            } catch (IOException e) {
-                e.printStackTrace();
+        String signatureCacheId (String sig) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String s : sig.split("\\.")) {
+                stringBuilder.append(s.length());
+                stringBuilder.append(".");
             }
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+            return stringBuilder.toString();
         }
 
-        public void decryptSignature(String s, String video_id, String player_url) {
-            // TODO: continue to get the function from player url
+        public String extractSignatureFunction(String video_id, String player_url, String s) {
+            Pair playerID = new Pair<String, String >(player_url, signatureCacheId(s));
+
+            if (!player_cache.containsKey(playerID)) {
+                Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
+                Matcher matcher = playerUrl.matcher(player_url);
+                if (!matcher.find())
+                    return null;
+
+                String player_id = matcher.group(1);
+                String player_type = matcher.group(2);
+
+
+                try {
+                    String response = run(player_url);
+                    JSInterpreter jsInterpreter = parseSigJs(response);
+                    if (jsInterpreter == null)
+                        return null;
+
+                    Pattern funcNamePattern = Pattern.compile("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(");
+                    Matcher m = funcNamePattern.matcher(response);
+
+                    String func_name;
+                    if (m.find())
+                        func_name = m.group(2);
+                    else {
+                        funcNamePattern = Pattern.compile("\\.sig\\|\\|(?<sig>[a-zA-Z0-9$]+)\\(");
+                        m = funcNamePattern.matcher(response);
+                        if (m.find())
+                            func_name = m.group(2);
+                        else
+                            return null;
+                    }
+
+
+                    Fun fun = jsInterpreter.extractFunction(func_name);
+                    jsInterpreter.setSigFun(fun);
+
+                    player_cache.put(playerID, jsInterpreter);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            JSInterpreter jsi = player_cache.get(playerID);
+            Arg arg = new Arg(s);
+            try {
+                Arg ret = jsi.callFunction(jsi.getSigFun(), new Arg[]{arg});
+                return ret.getString(VAL);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        public String decryptSignature(String s, String video_id, String player_url) {
             String TAG = "decryptSig";
 
             if (player_url == null)
-                return;
+                return null;
 
             if (player_url.startsWith("//"))
                 player_url = "https:" + player_url;
@@ -289,12 +325,14 @@ public class MainActivity extends AppCompatActivity {
             Pair<String, String> player_id = new Pair<> (player_url, getSignatureCacheId(s));
 
 
-            extractSignatureFunction(video_id, player_url, s);
+            String sig = extractSignatureFunction(video_id, player_url, s);
 
-            Log.d(TAG, s);
+            Log.d(TAG + "enc", s);
+            Log.d(TAG + "dec", sig);
             Log.d(TAG, video_id);
             Log.d(TAG, player_url);
 
+            return sig;
         }
 
         @Override
@@ -349,9 +387,9 @@ public class MainActivity extends AppCompatActivity {
                         String encrypted_signature = query_pairs.get("s");
                         String videoID = getID(you_url);
 
-                        decryptSignature(encrypted_signature, videoID, player_url);
-
-                        continue;
+                        String decryptsig = decryptSignature(encrypted_signature, videoID, player_url);
+                        url += "&signature=" + decryptsig;
+//                        continue;
                     }
 
                     if (!url.contains("ratebypass")) {
