@@ -99,12 +99,12 @@ public class JSInterpreter {
     
 
     public Arg callFunction(Fun func, Arg[] args) throws Exception {
-        if (args.length != func.argnames.length) {
-            throw new Exception("Incorrect number of arguments passed");
-        }
+//        if (args.length != func.argnames.length) {
+//            throw new Exception("Incorrect number of arguments passed");
+//        }
 
         JSONObject local_vars = new JSONObject();
-        for (int i = 0; i != args.length; i++) {
+        for (int i = 0; i < func.argnames.length; i++) {
             local_vars.put(func.argnames[i], args[i]);
         }
 
@@ -135,12 +135,12 @@ public class JSInterpreter {
         Pattern assgn = Pattern.compile("var\\s");
         Matcher m = assgn.matcher(stmt);
         String expr = "";
-        if (m.find()) {
+        if (m.find() && m.start() == 0) {
             expr = stmt.substring(m.group(0).length());
         }
         else {
             m = Pattern.compile("return(?:\\s+|$)").matcher(stmt);
-            if (m.find()) {
+            if (m.find() && m.start() == 0) {
                 expr = stmt.substring(m.group(0).length());
                 should_abort = true;
             }
@@ -199,7 +199,7 @@ public class JSInterpreter {
             Pattern p = Pattern.compile(assgn);
             Matcher m = p.matcher(expr);
             Arg right_val;
-            if (m.find()) {
+            if (m.find() && m.start() == 0) {
                 right_val = interpretExpression(m.group(3), local_vars, allowRecursion - 1);
             } else {
                 continue;
@@ -233,39 +233,27 @@ public class JSInterpreter {
 
         Pattern control = Pattern.compile(String.format("(?!if|return|true|false)(?<name>%s)$", _NAME_RE));
         Matcher m = control.matcher(expr);
-        if (m.find()) {
-            if (m.group(0).length() == expr.length()) {
-                if (m.group(1) != null) {
-                    return (Arg) local_vars.get(m.group(1));
-                }
+        if (m.find() && m.start() == 0) {
+            if (m.group(1) != null) {
+                return (Arg) local_vars.get(m.group(1));
             }
         }
 
-//        try {
-//            // For now, :\
-////            Arg ret = (Arg) new JSONObject(expr);
-//            Arg ret = new Arg(expr);
-//            return ret;
-//        }
-//        catch (Exception e) {
-//
-//        }
 
         try {
-            Arg ret = (Arg) new JSONObject(expr);
-            return ret;
+            return (Arg) new JSONObject(expr);
         }
         catch (JSONException j) {
             Pattern strpattern = Pattern.compile("^\"(?<str>[^\"]*)\"$");
             m = strpattern.matcher(expr);
-            if (m.find()) {
+            if (m.find() && m.start() == 0) {
                 return new Arg(m.group(1));
             }
         }
 
         Pattern var_arr = Pattern.compile(String.format("(?<in>%s)\\[(?<idx>.+)\\]$", _NAME_RE));
         m = var_arr.matcher(expr);
-        if (m.find()) {
+        if (m.find() && m.start() == 0) {
             if (m.group(1) != null && m.group(2) != null) {
                 Arg val = (Arg) local_vars.get(m.group(1));
                 Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion - 1);
@@ -277,7 +265,7 @@ public class JSInterpreter {
         Pattern var_dec = Pattern.compile(String.format("(?<var>%s)(?:\\.(?<member>[^(]+)|\\[(?<member2>[^]]+)\\])\\s*(?:\\(+(?<args>[^()]*)\\))?$", _NAME_RE));
         m = var_dec.matcher(expr);
 
-        if (m.find()) {
+        if (m.find() && m.start() == 0) {
             if (m.group(1) != null) {
                 String variable = m.group(1);
                 String member = Utils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
@@ -376,7 +364,7 @@ public class JSInterpreter {
 
                     JSONArray objArray = obj.getJSONArray(VAL);
                     JSONArray revArray = new JSONArray();
-                    for (int i = objArray.length() - 1; i >= 0; i++) {
+                    for (int i = objArray.length() - 1; i >= 0; i--) {
                         revArray.put(objArray.get(i));
                     }
                     obj.put(VAL, revArray);
@@ -424,7 +412,10 @@ public class JSInterpreter {
             String op = it.next();
             Pattern pattOp = Pattern.compile(String.format("(?<x>.+?)%s(?<y>.+)", Pattern.quote(op)));
             m = pattOp.matcher(expr);
-            if (!m.find()) {
+            if (m.find() && m.start() == 0) {
+
+            }
+            else {
                 continue;
             }
             Pair ret = interpretStatement(m.group(1), local_vars, allowRecursion - 1);
@@ -447,7 +438,7 @@ public class JSInterpreter {
 
         Pattern callFunc = Pattern.compile(String.format("^(?<func>%s)\\((?<args>[a-zA-Z0-9_$,]*)\\)$", _NAME_RE));
         m = callFunc.matcher(expr);
-        if (m.find()) {
+        if (m.find() && m.start() == 0) {
             String fname = m.group(1);
             String args = m.group(2);
 
@@ -489,7 +480,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("^=") | op.equals("|")) {
+        else if (op.equals("^=") | op.equals("^")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) ^ right_val.getInt(VAL));
                 return ret;
@@ -497,7 +488,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("&=")) {
+        else if (op.equals("&=") | op.equals("&")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) & right_val.getInt(VAL));
                 return ret;
@@ -505,7 +496,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals(">>=")) {
+        else if (op.equals(">>=") || op.equals(">>")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) >> right_val.getInt(VAL));
                 return ret;
@@ -513,7 +504,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("<<=")) {
+        else if (op.equals("<<=") || op.equals("<<")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) << right_val.getInt(VAL));
                 return ret;
@@ -521,7 +512,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("-=")) {
+        else if (op.equals("-=") || op.equals("-")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) - right_val.getInt(VAL));
                 return ret;
@@ -529,7 +520,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("+=")) {
+        else if (op.equals("+=") || op.equals("+")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) + right_val.getInt(VAL));
                 return ret;
@@ -537,7 +528,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("%=")) {
+        else if (op.equals("%=") || op.equals("%")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) % right_val.getInt(VAL));
                 return ret;
@@ -545,7 +536,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("/=")) {
+        else if (op.equals("/=") || op.equals("/")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) / right_val.getInt(VAL));
                 return ret;
@@ -553,7 +544,7 @@ public class JSInterpreter {
                 e.printStackTrace();
             }
         }
-        else if (op.equals("*=")) {
+        else if (op.equals("*=") || op.equals("*")) {
             try {
                 ret.put(VAL, cur.getInt(VAL) * right_val.getInt(VAL));
                 return ret;
