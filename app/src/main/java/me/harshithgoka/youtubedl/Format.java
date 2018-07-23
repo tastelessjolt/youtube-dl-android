@@ -8,13 +8,14 @@ import android.os.Parcelable;
  */
 
 public class Format implements Parcelable {
+    public String title;
     public int itag;
     public String url;
     public String quality;
     public String type;
 
-    public Format () {
-
+    public Format (String title) {
+        this.title = title;
     }
 
     protected Format(Parcel in) {

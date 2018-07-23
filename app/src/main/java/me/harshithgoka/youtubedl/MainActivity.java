@@ -1,6 +1,7 @@
 package me.harshithgoka.youtubedl;
 
 import android.annotation.TargetApi;
+import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -30,6 +31,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,9 +136,21 @@ public class MainActivity extends AppCompatActivity {
         log.append(s + "\n");
     }
 
+    public String preprocess (String s) {
+        int index = s.lastIndexOf("#");
+        if (index > 0) {
+            s = s.substring(0, index);
+        }
+
+        s = s.replaceFirst("m.youtube.com", "www.youtube.com");
+
+        return s;
+    }
 
     public void startPoint(View button) {
         String url = urlEdit.getText().toString();
+
+        url = preprocess(url);
 
         println("Url: " + url);
 
@@ -203,44 +218,8 @@ public class MainActivity extends AppCompatActivity {
             // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
             //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
 
-
-            // TODO: extract actual js function from script using some JS interpretor library
-//            webView.loadUrl("javascript:" + response);
-//            webView.evaluateJavascript(func_name, new ValueCallback<String>() {
-//                @Override
-//                public void onReceiveValue(String s) {
-//                    Log.d("Result", s);
-//                }
-//            });
-
-
             JSInterpreter jsInterpreter = new JSInterpreter(response);
             return jsInterpreter;
-
-//            org.mozilla.javascript.Context rhino = org.mozilla.javascript.Context.enter();
-//            //disabling the optimizer to better support Android.
-//            rhino.setOptimizationLevel(-1);
-//
-//            try {
-//
-//                Scriptable scope = rhino.initStandardObjects();
-//
-//                /**
-//                 * evaluateString(Scriptable scope, java.lang.String source, java.lang.String sourceName,
-//                 * int lineno, java.lang.Object securityDomain)
-//                 *
-//                 */
-//                rhino.evaluateString(scope, response, "JavaScript", 1, null);
-//
-//
-//                Function function = (Function) scope.get("evaluate", scope);
-//
-//            }
-//            catch (Exception e) {
-//
-//                e.printStackTrace();
-//            }
-
         }
 
         String signatureCacheId (String sig) {
@@ -352,12 +331,12 @@ public class MainActivity extends AppCompatActivity {
                 ret.put("status", true);
 
                 String fmts = ytconfig.getJSONObject("args").getString("url_encoded_fmt_stream_map") + "," + ytconfig.getJSONObject("args").getString("adaptive_fmts");
-
+                String title = ytconfig.getJSONObject("args").optString("title", "videoplayback");
                 String[] fmts_enc = fmts.split(",");
                 List<Format> formats = new ArrayList<>();
 
                 for (String fmt : fmts_enc) {
-                    Format f = new Format();
+                    Format f = new Format(title);
 
                     Map<String, String> query_pairs = new LinkedHashMap<String, String>();
                     String[] pairs = fmt.split("&");
@@ -438,6 +417,16 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
+        public void download (String url, String name) {
+            DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
+            req.setTitle(name);
+            req.allowScanningByMediaScanner();
+            req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+            DownloadManager dm = context.getSystemService(DownloadManager.class);
+            dm.enqueue(req);
+        }
+
         @Override
         protected void onPostExecute(List<Format> formats) {
             if (formats != null) {
@@ -454,6 +443,9 @@ public class MainActivity extends AppCompatActivity {
                     clipboard.setPrimaryClip(clip);
 
                     Toast.makeText(getApplicationContext(), String.format("Best quality link (%s) copied to Clipboard", formats.get(0).quality), Toast.LENGTH_SHORT).show();
+
+                    download(finalurl, formats.get(0).title);
+
                 }
                 else {
                     println("No. of formats: 0");
