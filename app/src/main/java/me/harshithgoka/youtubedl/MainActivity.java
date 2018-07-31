@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloadSampleListener;
+import com.liulishuo.filedownloader.FileDownloader;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,8 +47,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TooManyListenersException;
+/*
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+*/
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 import me.harshithgoka.youtubedl.Utils.Arg;
 import me.harshithgoka.youtubedl.Utils.Fun;
@@ -58,12 +69,14 @@ import org.mozilla.javascript.Scriptable;
 import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     EditText urlEdit;
     TextView log;
     OkHttpClient client;
     WebView webView;
+
+    Button btnCopy, btnDownload, btnAllFormats;
 
     List<Format> curr_formats;
 
@@ -118,6 +131,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        this.btnAllFormats = findViewById(R.id.btnAllFormats);
+        this.btnCopy = findViewById(R.id.btnCopy);
+        this.btnDownload = findViewById(R.id.btnDownload);
+
+        this.btnAllFormats.setOnClickListener(this);
+        this.btnCopy.setOnClickListener(this);
+        this.btnDownload.setOnClickListener(this);
+
 
         client = new OkHttpClient();
 
@@ -204,6 +226,23 @@ public class MainActivity extends AppCompatActivity {
         return stringBuilder.toString();
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btnAllFormats:
+                showAllFormats(v);
+                break;
+
+            case R.id.btnCopy:
+                pasteFromClipboard(v);
+                break;
+
+            case R.id.btnDownload:
+                startPoint(v);
+                break;
+        }
+    }
+
     class GetInfoAsyncTask extends AsyncTask<String, Void, List<Format>> {
         Context context;
         WebView webView;
@@ -237,6 +276,14 @@ public class MainActivity extends AppCompatActivity {
 
             if (!player_cache.containsKey(playerID)) {
                 Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
+                //Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]\\{2\\}_[A-Z]\\{2\\})?/base)?\\.(?<ext>[a-z]+)$");
+                //Pattern playerUrl = Pattern.compile(".*?-(\\?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(\\?<ext>[a-z]+)\\$");
+
+                //com.google.code.regexp.Pattern playerUrl2 = com.google.code.regexp.Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
+
+                //com.google.code.regexp.Matcher m2 = playerUrl2.matcher(player_url);
+
+
                 Matcher matcher = playerUrl.matcher(player_url);
                 if (!matcher.find())
                     return null;
@@ -244,6 +291,13 @@ public class MainActivity extends AppCompatActivity {
                 String player_id = matcher.group(1);
                 String player_type = matcher.group(2);
 
+/*
+                if (!m2.find())
+                    return null;
+
+                String player_id = m2.group(1);
+                String player_type = m2.group(2);
+*/
 
                 try {
                     String response = run(player_url);
@@ -368,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
                         String decryptsig = decryptSignature(encrypted_signature, videoID, player_url);
                         url += "&signature=" + decryptsig;
-//                        continue;
+
                     }
 
                     if (!url.contains("ratebypass")) {
@@ -423,7 +477,13 @@ public class MainActivity extends AppCompatActivity {
             req.allowScanningByMediaScanner();
             req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-            DownloadManager dm = context.getSystemService(DownloadManager.class);
+            DownloadManager dm = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                dm = context.getSystemService(DownloadManager.class);
+            }else{
+                dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            }
+            //DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             dm.enqueue(req);
         }
 

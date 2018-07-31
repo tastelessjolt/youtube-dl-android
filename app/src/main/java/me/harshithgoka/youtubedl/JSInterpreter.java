@@ -11,8 +11,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+/*
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+*/
+
+import com.google.code.regexp.Matcher;
+import com.google.code.regexp.Pattern;
 
 import kotlin.TuplesKt;
 import me.harshithgoka.youtubedl.Utils.Arg;
@@ -95,7 +100,7 @@ public class JSInterpreter {
         String s = String.format("(?x)" +
                 "(?:function\\s+%s|[{;,]\\s*%s\\s*=\\s*function|var\\s+%s\\s*=\\s*function)\\s* " +
                 "\\((?<args>[^)]*)\\)\\s*" +
-                "\\{(?<code>[^}]+)\\}", Pattern.quote(funcname), Pattern.quote(funcname), Pattern.quote(funcname));
+                "\\{(?<code>[^}]+)\\}", java.util.regex.Pattern.quote(funcname), java.util.regex.Pattern.quote(funcname), java.util.regex.Pattern.quote(funcname));
         Pattern funcPattern = Pattern.compile(s);
         Matcher m = funcPattern.matcher(code);
         m.find();
@@ -205,7 +210,7 @@ public class JSInterpreter {
             String assgn = String.format("(?x)\n" +
                     "                (?<out>%s)(?:\\[(?<index>[^\\]]+?)\\])?\n" +
                     "                \\s*%s\n" +
-                    "                (?<expr>.*)$", _NAME_RE, Pattern.quote(op));
+                    "                (?<expr>.*)$", _NAME_RE, java.util.regex.Pattern.quote(op));
             Pattern p = Pattern.compile(assgn);
             Matcher m = p.matcher(expr);
             Arg right_val;
@@ -420,7 +425,7 @@ public class JSInterpreter {
 
         for (Iterator<String> it = OPS.keys(); it.hasNext(); ) {
             String op = it.next();
-            Pattern pattOp = Pattern.compile(String.format("(?<x>.+?)%s(?<y>.+)", Pattern.quote(op)));
+            Pattern pattOp = Pattern.compile(String.format("(?<x>.+?)%s(?<y>.+)", java.util.regex.Pattern.quote(op)));
             m = pattOp.matcher(expr);
             if (m.find() && m.start() == 0) {
 
@@ -607,7 +612,7 @@ public class JSInterpreter {
         Pattern objpatt = Pattern.compile(String.format("(?x)\n" +
                 "                (?<!this\\.)%s\\s*=\\s*\\{\\s*\n" +
                 "                    (?<fields>(%s\\s*:\\s*function\\s*\\(.*?\\)\\s*\\{.*?\\}(?:,\\s*)?)*)\n" +
-                "                \\}\\s*;", Pattern.quote(objname), _FUNC_NAME_RE));
+                "                \\}\\s*;", java.util.regex.Pattern.quote(objname), _FUNC_NAME_RE));
         Matcher m = objpatt.matcher(code);
         if (m.find()) {
             String fields = m.group(1);
