@@ -25,7 +25,7 @@ import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
 public class Extractor {
 
-    String _VALID_URL = "(?x)^\n" +
+    public String _VALID_URL = "(?x)^\n" +
             " (\n" +
             "     (?:https?://|//)                                    # http(s):// or protocol-independent URL\n" +
             "     (?:(?:(?:(?:\\w+\\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\\.com/|\n" +

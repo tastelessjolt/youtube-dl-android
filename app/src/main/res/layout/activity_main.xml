@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,75 +7,92 @@
     android:layout_height="match_parent"
     tools:context="me.harshithgoka.youtubedl.MainActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:autoLink="web"
-        android:background="@android:color/background_dark"
-        android:fontFamily="monospace"
-        android:padding="8dp"
-        android:scrollbars="vertical"
-        android:text="Progress shows here ---->\n"
-        android:textColor="@android:color/holo_green_light"
-        android:textSize="19dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnAllFormats"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/url" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/url"
-        android:layout_width="0dp"
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:autoLink="web"
+            android:background="@android:color/background_dark"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:scrollbars="vertical"
+            android:text="@string/initial_log"
+            android:textColor="@android:color/holo_green_light"
+            android:textSize="19sp"
+            app:layout_constraintBottom_toTopOf="@+id/btnAllFormats"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/btnDownload"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/url"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:ems="10"
+                android:hint="@string/url_hint"
+                android:inputType="textUri"
+                android:text="@string/example_url" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDownload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:fontFamily="monospace"
+            android:onClick="startPoint"
+            android:text="@string/start_button"
+            android:textAllCaps="false"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAllFormats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="monospace"
+            android:text="@string/formats_button"
+            android:textAllCaps="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="@string/url_hint"
-        android:inputType="textUri"
-        android:text="@string/example_url"
-        app:layout_constraintEnd_toStartOf="@+id/btnCopy"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_gravity="bottom"
+        app:backgroundTint="@color/colorPrimary"
+        app:navigationIcon="@drawable/ic_menu_24"/>
 
-    <Button
-        android:id="@+id/btnDownload"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="Start"
-        android:textSize="20dp"
-        android:onClick="startPoint"
-        android:fontFamily="monospace"
-        android:textAllCaps="false"
-        app:layout_constraintBaseline_toBaselineOf="@+id/url"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:backgroundTint="@color/colorAccent"
+        android:src="@drawable/ic_content_copy_24"
+        app:layout_anchor="@id/bar">
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
-    <Button
-        android:id="@+id/btnCopy"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="4dp"
-        android:textAllCaps="false"
-        android:background="@drawable/drawable_bg"
-        android:onClick="pasteFromClipboard"
-        app:layout_constraintBaseline_toBaselineOf="@+id/url"
-        app:layout_constraintEnd_toStartOf="@+id/btnDownload" />
-
-    <Button
-        android:id="@+id/btnAllFormats"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:text="All formats"
-        android:textAllCaps="false"
-        android:fontFamily="monospace"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

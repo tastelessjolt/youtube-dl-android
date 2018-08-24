@@ -24,9 +24,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.code.regexp.Matcher;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import me.harshithgoka.youtubedl.Utils.Utils;
 
@@ -37,12 +42,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     EditText urlEdit;
     TextView log;
-
-    Button btnCopy, btnDownload, btnAllFormats;
+    FloatingActionButton btnCopy;
+    Button btnDownload, btnAllFormats;
 
     List<Format> curr_formats;
 
     Extractor extractor;
+
+    Pattern youtubeUrlPattern;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -76,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         this.btnAllFormats = findViewById(R.id.btnAllFormats);
-        this.btnCopy = findViewById(R.id.btnCopy);
+        this.btnCopy = findViewById(R.id.fab);
         this.btnDownload = findViewById(R.id.btnDownload);
 
         this.btnAllFormats.setOnClickListener(this);
@@ -90,6 +97,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         curr_formats = new ArrayList<>();
         extractor = new Extractor();
+
+        youtubeUrlPattern = Pattern.compile(extractor._VALID_URL);
+
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
         String appLinkAction = appLinkIntent.getAction();
@@ -129,7 +139,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void startDownload(String url) {
         url = preprocess(url);
 
+        java.util.regex.Matcher m = youtubeUrlPattern.matcher(url);
         println("Url: " + url);
+
+        urlEdit.setText(url);
+
+        if (!m.find()) {
+            Toast.makeText(this, "Invalid Youtube URL", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         AsyncTask<String, Void, List<Format>> asyncTask = new YoutubeDLAsyncTask(getApplicationContext(), extractor);
         asyncTask.execute(url);
@@ -173,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showAllFormats(v);
                 break;
 
-            case R.id.btnCopy:
+            case R.id.fab:
                 pasteFromClipboard(v);
                 break;
 
