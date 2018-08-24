@@ -189,7 +189,10 @@ public class Extractor {
     public String getID (String url) {
         Pattern pattern = Pattern.compile(_VALID_URL);
         Matcher m = pattern.matcher(url);
-        m.find();
+        if (!m.find()) {
+            Log.d("ERR", "Not a valid URL, couldn't get ID");
+            Log.d("ERR", url);
+        }
         return m.group(2);
     }
 
@@ -236,7 +239,10 @@ public class Extractor {
 
                     Pattern playerType = Pattern.compile("(html5player-([^/]+?)(?:/html5player(?:-new)?)?\\.js)|((?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\\.js)");
                     m = playerType.matcher(player_url);
-                    m.find();
+                    if (!m.find()) {
+                        Log.d("ERR","Couldn't find Player URL");
+                        Log.d("ERR", response);
+                    }
 
                     String player_version = m.group();
                     String player_desc = "html5 player " + player_version;

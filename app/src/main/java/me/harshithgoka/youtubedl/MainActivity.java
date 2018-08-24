@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
+                != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
@@ -90,6 +90,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         curr_formats = new ArrayList<>();
         extractor = new Extractor();
+        // ATTENTION: This was auto-generated to handle app links.
+        Intent appLinkIntent = getIntent();
+        String appLinkAction = appLinkIntent.getAction();
+        ClipData clipData = appLinkIntent.getClipData();
+        Uri appLinkData = appLinkIntent.getData();
+        String url = null;
+        if (appLinkData != null) {
+            url = appLinkData.toString();
+        }
+        else if (clipData != null) {
+            if (clipData.getItemCount() > 0)
+                url = clipData.getItemAt(0).getText().toString();
+        }
+
+        if (url != null) {
+            urlEdit.setText(url);
+            startDownload(url);
+        }
     }
 
     private void println (String s) {
@@ -103,19 +121,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         s = s.replaceFirst("m.youtube.com", "www.youtube.com");
+        s = s.replaceFirst("&.*", "");
 
         return s;
     }
 
-    public void startPoint(View button) {
-        String url = urlEdit.getText().toString();
-
+    public void startDownload(String url) {
         url = preprocess(url);
 
         println("Url: " + url);
 
         AsyncTask<String, Void, List<Format>> asyncTask = new YoutubeDLAsyncTask(getApplicationContext(), extractor);
         asyncTask.execute(url);
+    }
+
+    public void startPoint(View button) {
+        String url = urlEdit.getText().toString();
+        startDownload(url);
     }
 
     public void pasteFromClipboard(View button) {
