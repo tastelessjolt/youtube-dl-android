@@ -91,4 +91,6 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="url_hint">YouTube URL</string>
+    <string name="example_url">https://www.youtube.com/watch?v=eiDiKwbGfIY</string>
 </resources>

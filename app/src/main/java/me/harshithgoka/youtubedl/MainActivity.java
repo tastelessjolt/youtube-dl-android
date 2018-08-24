@@ -1,11 +1,14 @@
 package me.harshithgoka.youtubedl;
 
+import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.os.AsyncTask;
@@ -13,23 +16,22 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.liulishuo.filedownloader.BaseDownloadTask;
-import com.liulishuo.filedownloader.FileDownloadListener;
-import com.liulishuo.filedownloader.FileDownloadSampleListener;
-import com.liulishuo.filedownloader.FileDownloader;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,24 +49,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TooManyListenersException;
-/*
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-*/
 
 import com.google.code.regexp.Matcher;
 import com.google.code.regexp.Pattern;
+import com.liulishuo.okdownload.DownloadTask;
 
 import me.harshithgoka.youtubedl.Utils.Arg;
 import me.harshithgoka.youtubedl.Utils.Fun;
+import me.harshithgoka.youtubedl.Utils.Utils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
 
 import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
 
@@ -74,11 +69,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText urlEdit;
     TextView log;
     OkHttpClient client;
-    WebView webView;
 
     Button btnCopy, btnDownload, btnAllFormats;
 
+    static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 9293;
+
     List<Format> curr_formats;
+
 
     String _VALID_URL = "(?x)^\n" +
             " (\n" +
@@ -128,9 +125,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+
+        }
 
         this.btnAllFormats = findViewById(R.id.btnAllFormats);
         this.btnCopy = findViewById(R.id.btnCopy);
@@ -150,7 +173,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         curr_formats = new ArrayList<>();
 
-        webView = (WebView) findViewById(R.id.webview);
         player_cache = new HashMap<>();
     }
 
@@ -176,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         println("Url: " + url);
 
-        AsyncTask<String, Void, List<Format>> asyncTask = new GetInfoAsyncTask(getApplicationContext(), webView);
+        AsyncTask<String, Void, List<Format>> asyncTask = new GetInfoAsyncTask(getApplicationContext());
         asyncTask.execute(url);
     }
 
@@ -245,11 +267,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     class GetInfoAsyncTask extends AsyncTask<String, Void, List<Format>> {
         Context context;
-        WebView webView;
 
-        public  GetInfoAsyncTask(Context context, WebView webView) {
+        public  GetInfoAsyncTask(Context context) {
             this.context = context;
-            this.webView = webView;
         }
 
 
@@ -276,13 +296,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if (!player_cache.containsKey(playerID)) {
                 Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
-                //Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]\\{2\\}_[A-Z]\\{2\\})?/base)?\\.(?<ext>[a-z]+)$");
-                //Pattern playerUrl = Pattern.compile(".*?-(\\?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(\\?<ext>[a-z]+)\\$");
-
-                //com.google.code.regexp.Pattern playerUrl2 = com.google.code.regexp.Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
-
-                //com.google.code.regexp.Matcher m2 = playerUrl2.matcher(player_url);
-
 
                 Matcher matcher = playerUrl.matcher(player_url);
                 if (!matcher.find())
@@ -290,14 +303,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 String player_id = matcher.group(1);
                 String player_type = matcher.group(2);
-
-/*
-                if (!m2.find())
-                    return null;
-
-                String player_id = m2.group(1);
-                String player_type = m2.group(2);
-*/
 
                 try {
                     String response = run(player_url);
@@ -471,19 +476,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return null;
         }
 
-        public void download (String url, String name) {
+        public void download (String url, String name, String extension) {
+
             DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
-            req.setTitle(name);
-            req.allowScanningByMediaScanner();
+            req.setTitle(name)
+                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, File.separator + name + "." + extension)
+                    .allowScanningByMediaScanner();
             req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-            DownloadManager dm = null;
+            DownloadManager dm =null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                File[] files = context.getExternalMediaDirs();
+                if (files.length > 0) {
+                    Log.d(files[0].getAbsolutePath(), files.length > 1 ? files[1].getAbsolutePath(): "");
+                }
                 dm = context.getSystemService(DownloadManager.class);
             }else{
                 dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             }
-            //DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             dm.enqueue(req);
         }
 
@@ -503,8 +513,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     clipboard.setPrimaryClip(clip);
 
                     Toast.makeText(getApplicationContext(), String.format("Best quality link (%s) copied to Clipboard", formats.get(0).quality), Toast.LENGTH_SHORT).show();
-
-                    download(finalurl, formats.get(0).title);
+                    String extension = "";
+                    Format format = formats.get(0);
+                    download(finalurl, format.title, Utils.getExtension(format));
+                    Log.d("Filename", format.title + "." + Utils.getExtension(format));
 
                 }
                 else {

@@ -137,7 +137,7 @@ public class JSInterpreter {
         return res;
     }
 
-    public Pair interpretStatement(String stmt, JSONObject local_vars, int allowRecursion) throws Exception {
+    Pair<Arg, Boolean> interpretStatement(String stmt, JSONObject local_vars, int allowRecursion) throws Exception {
         Log.d("JSParser", stmt);
 
         if (allowRecursion < 0) {
@@ -243,7 +243,7 @@ public class JSInterpreter {
             return new Arg(i);
         }
         catch (Exception e) {
-
+            // do nothing
         }
 
         Pattern control = Pattern.compile(String.format("(?!if|return|true|false)(?<name>%s)$", _NAME_RE));
@@ -311,7 +311,9 @@ public class JSInterpreter {
                     return (Arg) obj.getJSONObject(member);
                 }
 
-                assert (expr.endsWith(")"));
+                if (!expr.endsWith(")")) {
+                    throw new Exception();
+                }
 
                 List<Arg> argvalbuilder = new ArrayList<>();
 
