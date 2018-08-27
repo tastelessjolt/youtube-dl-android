@@ -23,9 +23,8 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
     List<Format> formats;
     Context context;
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
+    class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView quality, type, itag, url;
-        public View parentView;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -33,14 +32,25 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
             type = itemView.findViewById(R.id.format_type);
             itag = itemView.findViewById(R.id.format_itag);
             url = itemView.findViewById(R.id.format_url);
-            parentView = itemView;
+        }
+
+        @Override
+        public void onClick(View view) {
+            String finalurl = ((TextView) view.findViewById(R.id.format_url)).getText().toString();
+
+            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            assert clipboard != null;
+            ClipData clip = ClipData.newRawUri("DownloadURL", Uri.parse(finalurl));
+            clipboard.setPrimaryClip(clip);
+
+            Toast.makeText(context, String.format("(%s) Quality link copied to Clipboard", ((TextView) view.findViewById(R.id.format_quality)).getText().toString()), Toast.LENGTH_SHORT).show();
+
+            formats.get(getLayoutPosition()).download(context);
         }
     }
 
     public FormatAdapter( Context context, List<Format> formats ) {
-        this.formats = new ArrayList<>();
-        this.formats.addAll(formats);
-
+        this.formats = formats;
         this.context = context;
     }
 
@@ -60,30 +70,16 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
         else
             holder.quality.setText("Quality not defined");
         if (format.type != null)
-            holder.type.setText(format.type);
+            holder.type.setText(format.title);
         else
             holder.type.setText("Type not defined");
 
         if (format.url != null)
-            holder.url.setText(format.url);
+            holder.url.setText(format.description);
         else
             holder.url.setText("URL not found");
 
         holder.itag.setText(format.itag + "");
-
-        holder.parentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String finalurl = ((TextView) view.findViewById(R.id.format_url)).getText().toString();
-
-                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                assert clipboard != null;
-                ClipData clip = ClipData.newRawUri("DownloadURL", Uri.parse(finalurl));
-                clipboard.setPrimaryClip(clip);
-
-                Toast.makeText(context, String.format("(%s) Quality link copied to Clipboard", ((TextView) view.findViewById(R.id.format_quality)).getText().toString()), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override

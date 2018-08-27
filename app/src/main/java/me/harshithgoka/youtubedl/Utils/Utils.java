@@ -606,5 +606,55 @@ public class Utils {
         return "";
     }
 
+    public static String getTitle (Format format) {
+        String ret = "";
+        if (formats != null) {
+            try {
+                JSONObject fmt = (JSONObject) formats.get(format.itag + "");
+                boolean audio = fmt.has("acodec");
+                boolean video = fmt.has("vcodec");
+
+                if ( audio && video) {
+                    ret = "Video + Audio ";
+
+                    if (fmt.has("height")) {
+                        ret += fmt.getInt("height") + "p";
+                    }
+
+                    if (fmt.has("abr")) {
+                        ret += fmt.getInt("abr") + "kbps audio";
+                    }
+                }
+                else if (video) {
+                    ret = "Video Only ";
+                    if (fmt.has("height")) {
+                        ret += fmt.getInt("height") + "p";
+                    }
+                }
+                else if (audio) {
+                    ret = "Audio Only ";
+                    if (fmt.has("abr")) {
+                        ret += fmt.getInt("abr") + "kbps";
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return ret;
+    }
+
+    public static String getDescription(Format format) {
+        if (formats != null) {
+            try {
+                JSONObject fmt = (JSONObject) formats.get(format.itag + "");
+                return fmt.getString("ext");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return "";
+    }
+
 
 }

@@ -24,15 +24,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.code.regexp.Matcher;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import me.harshithgoka.youtubedl.Utils.Utils;
 
 
@@ -45,11 +47,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     FloatingActionButton btnCopy;
     Button btnDownload, btnAllFormats;
 
-    List<Format> curr_formats;
+    List<Format> formats;
 
     Extractor extractor;
 
     Pattern youtubeUrlPattern;
+
+    RecyclerView recyclerView;
+    FormatAdapter adapter;
+    LinearLayoutManager linearLayoutManager;
+
+    BottomSheetBehavior<View> bottomSheetBehavior;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -95,10 +103,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         urlEdit = (EditText) findViewById(R.id.url);
 
-        curr_formats = new ArrayList<>();
+        formats = new ArrayList<>();
         extractor = new Extractor();
 
         youtubeUrlPattern = Pattern.compile(extractor._VALID_URL);
+
+        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet));
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        recyclerView = findViewById(R.id.recycler_view);
+        adapter = new FormatAdapter(getApplicationContext(), formats);
+        recyclerView.setAdapter(adapter);
+        linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+        BottomAppBar bar = (BottomAppBar) findViewById(R.id.bar);
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle the navigation click by showing a BottomDrawer etc.
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
 
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
@@ -163,13 +189,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (clipboard.hasPrimaryClip()) {
             ClipData clipData = clipboard.getPrimaryClip();
             Uri uri;
-            String url;
+            CharSequence url;
             if ( clipData.getItemCount() > 0 ) {
                 if ((uri = clipData.getItemAt(0).getUri()) != null) {
                     urlEdit.setText(uri.toString());
                 }
-                else if ((url = clipData.getItemAt(0).getText().toString()) != null ) {
-                    urlEdit.setText(url);
+                else if ((url = clipData.getItemAt(0).getText()) != null ) {
+                    urlEdit.setText(url.toString());
                 }
                 startPoint(button);
             }
@@ -177,9 +203,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showAllFormats(View view) {
-        if (curr_formats.size() > 0) {
+        if (formats.size() > 0) {
             Intent intent = new Intent(getApplicationContext(), FormatsActivity.class);
-            intent.putParcelableArrayListExtra(FormatsActivity.FORMATS, (ArrayList<? extends Parcelable>) curr_formats);
+            intent.putParcelableArrayListExtra(FormatsActivity.FORMATS, (ArrayList<? extends Parcelable>) formats);
             startActivity(intent);
         }
     }
@@ -217,33 +243,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return ytextractor.getFormats(you_url);
         }
 
-        public void download (String url, String name, String extension) {
-
-            DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
-            req.setTitle(name)
-                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, File.separator + name + "." + extension)
-                    .allowScanningByMediaScanner();
-            req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
-            DownloadManager dm =null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                File[] files = context.getExternalMediaDirs();
-                if (files.length > 0) {
-                    Log.d(files[0].getAbsolutePath(), files.length > 1 ? files[1].getAbsolutePath(): "");
-                }
-                dm = context.getSystemService(DownloadManager.class);
-            }else{
-                dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            }
-            dm.enqueue(req);
-        }
-
         @Override
         protected void onPostExecute(List<Format> formats) {
             if (formats != null) {
                 if (formats.size() > 0) {
-                    curr_formats.clear();
-                    curr_formats.addAll(formats);
+                    MainActivity.this.formats.clear();
+                    MainActivity.this.formats.addAll(formats);
+                    MainActivity.this.adapter.notifyDataSetChanged();
 
                     String finalurl = formats.get(0).url;
                     println(finalurl);
@@ -254,11 +260,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     clipboard.setPrimaryClip(clip);
 
                     Toast.makeText(getApplicationContext(), String.format("Best quality link (%s) copied to Clipboard", formats.get(0).quality), Toast.LENGTH_SHORT).show();
-                    String extension = "";
-                    Format format = formats.get(0);
-                    download(finalurl, format.title, Utils.getExtension(format));
-                    Log.d("Filename", format.title + "." + Utils.getExtension(format));
-
                 }
                 else {
                     println("No. of formats: 0");
