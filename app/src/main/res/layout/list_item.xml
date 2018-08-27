@@ -14,47 +14,60 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <View
+                android:id="@+id/video"
+                android:layout_width="@dimen/icon_size"
+                android:layout_height="@dimen/icon_size"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/ic_videocam_off_black_24dp"
+                app:layout_constraintBottom_toBottomOf="@+id/format_quality"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/format_quality" />
+
+            <View
+                android:id="@+id/audio"
+                android:layout_width="@dimen/icon_size"
+                android:layout_height="@dimen/icon_size"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/ic_volume_off_black_24dp"
+                app:layout_constraintBottom_toBottomOf="@+id/format_quality"
+                app:layout_constraintStart_toEndOf="@+id/video"
+                app:layout_constraintTop_toTopOf="@+id/format_quality" />
+
             <TextView
-                android:id="@+id/format_type"
+                android:id="@+id/format_quality"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="Quality"
+                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                app:layout_constraintEnd_toStartOf="@+id/format_itag"
+                app:layout_constraintStart_toEndOf="@+id/audio"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/format_ext"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:text="FormatType"
-                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/format_quality"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Quality"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                app:layout_constraintBaseline_toBaselineOf="@+id/format_type"
-                app:layout_constraintStart_toEndOf="@+id/format_type" />
-
-            <TextView
-                android:id="@+id/format_url"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginStart="8dp"
-                android:text="URL"
+                android:text="extension"
                 android:textAppearance="@android:style/TextAppearance.DeviceDefault"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/format_type" />
+                app:layout_constraintTop_toBottomOf="@+id/format_quality" />
 
             <TextView
                 android:id="@+id/format_itag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:text="itag"
                 app:layout_constraintBaseline_toBaselineOf="@+id/format_quality"
-                app:layout_constraintStart_toEndOf="@+id/format_quality" />
+                app:layout_constraintEnd_toEndOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

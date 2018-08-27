@@ -1,51 +1,52 @@
 package me.harshithgoka.youtubedl;
 
 import android.Manifest;
-import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import me.harshithgoka.youtubedl.Utils.Utils;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 9293;
+    static final String HISTORY = "VideoInfos";
 
     EditText urlEdit;
     TextView log;
     FloatingActionButton btnCopy;
-    Button btnDownload, btnAllFormats;
+    FloatingActionButton btnDownload;
 
     List<Format> formats;
 
@@ -58,6 +59,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     LinearLayoutManager linearLayoutManager;
 
     BottomSheetBehavior<View> bottomSheetBehavior;
+    List<ProgressBar> progressBars;
+
+    SharedPreferences mPrefs;
+    ArrayList<VideoInfo> history;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -90,11 +95,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        this.btnAllFormats = findViewById(R.id.btnAllFormats);
-        this.btnCopy = findViewById(R.id.fab);
+        this.btnCopy = findViewById(R.id.paste);
         this.btnDownload = findViewById(R.id.btnDownload);
 
-        this.btnAllFormats.setOnClickListener(this);
         this.btnCopy.setOnClickListener(this);
         this.btnDownload.setOnClickListener(this);
 
@@ -102,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         log.setMovementMethod(new ScrollingMovementMethod());
 
         urlEdit = (EditText) findViewById(R.id.url);
+
+        progressBars = new ArrayList<>();
+        progressBars.add((ProgressBar) findViewById(R.id.progressBar));
+        progressBars.add((ProgressBar) findViewById(R.id.progressBar2));
 
         formats = new ArrayList<>();
         extractor = new Extractor();
@@ -126,6 +133,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        mPrefs = getPreferences(MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = mPrefs.getString(HISTORY, "");
+
+        Type type = new TypeToken< List < VideoInfo >>() {}.getType();
+        history = gson.fromJson(json, type);
+        if (history == null) {
+            history = new ArrayList<>();
+        }
+
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
         String appLinkAction = appLinkIntent.getAction();
@@ -144,6 +161,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             urlEdit.setText(url);
             startDownload(url);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences.Editor editor = mPrefs.edit();
+
+        String connectionsJSONString = new Gson().toJson(history);
+        editor.putString(HISTORY, connectionsJSONString);
+        editor.apply();
     }
 
     private void println (String s) {
@@ -175,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        AsyncTask<String, Void, List<Format>> asyncTask = new YoutubeDLAsyncTask(getApplicationContext(), extractor);
+        AsyncTask<String, Void, VideoInfo> asyncTask = new YoutubeDLAsyncTask(getApplicationContext(), extractor);
         asyncTask.execute(url);
     }
 
@@ -202,22 +229,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void showAllFormats(View view) {
-        if (formats.size() > 0) {
-            Intent intent = new Intent(getApplicationContext(), FormatsActivity.class);
-            intent.putParcelableArrayListExtra(FormatsActivity.FORMATS, (ArrayList<? extends Parcelable>) formats);
-            startActivity(intent);
+    public void showLoading () {
+        for (ProgressBar bar : progressBars) {
+            bar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void hideLoading() {
+        for (ProgressBar bar: progressBars) {
+            bar.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.btnAllFormats:
-                showAllFormats(v);
-                break;
-
-            case R.id.fab:
+            case R.id.paste:
                 pasteFromClipboard(v);
                 break;
 
@@ -227,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    class YoutubeDLAsyncTask extends AsyncTask<String, Void, List<Format>> {
+    class YoutubeDLAsyncTask extends AsyncTask<String, Void, VideoInfo> {
         Context context;
         Extractor ytextractor;
 
@@ -236,16 +263,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ytextractor = extractor;
         }
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showLoading();
+        }
 
         @Override
-        protected List<Format> doInBackground(String... strings) {
+        protected VideoInfo doInBackground(String... strings) {
             String you_url = strings[0];
             return ytextractor.getFormats(you_url);
         }
 
         @Override
-        protected void onPostExecute(List<Format> formats) {
-            if (formats != null) {
+        protected void onPostExecute(VideoInfo videoInfo) {
+            hideLoading();
+            if (videoInfo != null) {
+                List<Format> formats = videoInfo.formats;
+                history.add(0, videoInfo);
                 if (formats.size() > 0) {
                     MainActivity.this.formats.clear();
                     MainActivity.this.formats.addAll(formats);

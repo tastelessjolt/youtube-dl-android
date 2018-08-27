@@ -23,9 +23,11 @@ public class Format implements Parcelable {
     public String url;
     public String quality;
     public String type;
-
     public String extension;
     public String description;
+    public String content;
+
+    public boolean audio, video;
 
     public Format (String title) {
         this.title = title;
@@ -38,8 +40,22 @@ public class Format implements Parcelable {
         type = in.readString();
 
         extension = Utils.getExtension(this);
-        title = Utils.getTitle(this);
+        content = Utils.getTitle(this);
         description = Utils.getDescription(this);
+    }
+
+    public void setFormat(Format fmt) {
+        title = fmt.title;
+        itag = fmt.itag;
+        url = fmt.url;
+        quality = fmt.quality;
+        type = fmt.type;
+        extension = fmt.extension;
+        description = fmt.description;
+        content = fmt.content;
+
+        audio = fmt.audio;
+        video = fmt.video;
     }
 
     public static final Creator<Format> CREATOR = new Creator<Format>() {
@@ -54,13 +70,21 @@ public class Format implements Parcelable {
         }
     };
 
+    public void setItag(int itag) {
+        this.itag = itag;
+
+        extension = Utils.getExtension(this);
+        content = Utils.getTitle(this);
+        description = Utils.getDescription(this);
+    }
+
     @Override
     public int describeContents() {
         return 0;
     }
 
     @Override
-    public void writeToParcel(Parcel parcel, int i) {
+    public void writeToParcel(Parcel parcel, int flags) {
         parcel.writeInt(itag);
         parcel.writeString(url);
         parcel.writeString(quality);

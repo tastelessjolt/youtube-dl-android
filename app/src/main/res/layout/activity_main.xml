@@ -19,6 +19,7 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:autoLink="web"
                 android:background="@android:color/background_dark"
@@ -31,7 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btnAllFormats" />
+                app:layout_constraintTop_toBottomOf="@+id/progressBar2" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textInputLayout"
@@ -40,7 +41,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                app:layout_constraintEnd_toStartOf="@+id/btnDownload"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
@@ -54,29 +55,19 @@
                     android:text="@string/example_url" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDownload"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:fontFamily="monospace"
-                android:onClick="startPoint"
-                android:text="@string/start_button"
-                android:textAllCaps="false"
-                android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAllFormats"
+            <ProgressBar
+                android:id="@+id/progressBar2"
+                style="?android:attr/progressBarStyle"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:fontFamily="monospace"
-                android:text="@string/formats_button"
-                android:textAllCaps="false"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -86,16 +77,38 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:backgroundTint="@color/colorPrimary"
-        app:navigationIcon="@drawable/ic_menu_24"/>
+        app:navigationIcon="@drawable/ic_menu_24" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/paste"
+        style="@style/Widget.MaterialComponents.FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="@color/colorAccent"
         android:src="@drawable/ic_content_copy_24"
         app:layout_anchor="@id/bar">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+    <View
+        android:id="@+id/dummy"
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        app:layout_anchor="@id/paste"
+        app:layout_anchorGravity="top" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnDownload"
+        style="@style/Widget.MaterialComponents.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:src="@drawable/ic_send_black_24dp"
+        app:backgroundTint="@color/colorAccent"
+        app:fabCradleMargin="@dimen/fab_margin"
+        app:fabCradleVerticalOffset="@dimen/fab_margin"
+        app:layout_anchor="@id/dummy"
+        app:layout_anchorGravity="top"/>
+
 
     <include layout="@layout/formats_layout"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -3,6 +3,8 @@ package me.harshithgoka.youtubedl.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 import me.harshithgoka.youtubedl.Format;
 
 /**
@@ -614,27 +616,30 @@ public class Utils {
                 boolean audio = fmt.has("acodec");
                 boolean video = fmt.has("vcodec");
 
+                format.audio = audio;
+                format.video = video;
+
                 if ( audio && video) {
-                    ret = "Video + Audio ";
+                    ret = "Video + Audio";
 
                     if (fmt.has("height")) {
-                        ret += fmt.getInt("height") + "p";
+                        ret += String.format(Locale.UK, " %dp",fmt.getInt("height"));
                     }
 
                     if (fmt.has("abr")) {
-                        ret += fmt.getInt("abr") + "kbps audio";
+                        ret += String.format(Locale.UK, " %dkbps audio",fmt.getInt("abr"));
                     }
                 }
                 else if (video) {
-                    ret = "Video Only ";
+                    ret = "Video Only";
                     if (fmt.has("height")) {
-                        ret += fmt.getInt("height") + "p";
+                        ret += String.format(Locale.UK, " %dp",fmt.getInt("height"));
                     }
                 }
                 else if (audio) {
-                    ret = "Audio Only ";
+                    ret = "Audio Only";
                     if (fmt.has("abr")) {
-                        ret += fmt.getInt("abr") + "kbps";
+                        ret += String.format(Locale.UK, " %dkbps",fmt.getInt("abr"));
                     }
                 }
             } catch (JSONException e) {

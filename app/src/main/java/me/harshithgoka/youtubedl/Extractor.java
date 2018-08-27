@@ -196,8 +196,10 @@ public class Extractor {
         return m.group(2);
     }
 
-    public List<Format> getFormats(String you_url) {
+    public VideoInfo getFormats(String you_url) {
         String response;
+        String video_id = "";
+        String thumbnail_url = "";
         JSONObject ret = new JSONObject();
 
         try {
@@ -262,7 +264,7 @@ public class Extractor {
 
                 for (String param: params) {
                     if (param.equals("itag")) {
-                        f.itag = Integer.parseInt(query_pairs.get(param));
+                        f.setItag(Integer.parseInt(query_pairs.get(param)));
                     }
 
                     if (param.equals("type")) {
@@ -277,7 +279,8 @@ public class Extractor {
                 formats.add(f);
             }
 
-            return formats;
+            VideoInfo videoInfo = new VideoInfo(video_id, thumbnail_url, formats);
+            return videoInfo;
 
 
         } catch (IOException e) {

@@ -5,14 +5,16 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import androidx.recyclerview.widget.RecyclerView;
+import me.harshithgoka.youtubedl.Utils.Utils;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by harshithgoka on 12/16/2017 AD.
@@ -24,19 +26,25 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
     Context context;
 
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public TextView quality, type, itag, url;
+        public TextView quality, itag, ext;
+        public View audio, video;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             quality = itemView.findViewById(R.id.format_quality);
-            type = itemView.findViewById(R.id.format_type);
             itag = itemView.findViewById(R.id.format_itag);
-            url = itemView.findViewById(R.id.format_url);
+            ext = itemView.findViewById(R.id.format_ext);
+            audio = itemView.findViewById(R.id.audio);
+            video = itemView.findViewById(R.id.video);
+
+            // This is nice!
+            // https://stackoverflow.com/questions/31627073/why-does-onclicklistener-on-a-viewholder-dont-work
+            itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            String finalurl = ((TextView) view.findViewById(R.id.format_url)).getText().toString();
+            String finalurl = ((TextView) view.findViewById(R.id.format_ext)).getText().toString();
 
             ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
             assert clipboard != null;
@@ -65,21 +73,12 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
     @Override
     public void onBindViewHolder(final FormatAdapter.MyViewHolder holder, int position) {
         Format format = formats.get(position);
-        if (format.quality != null)
-            holder.quality.setText(format.quality);
-        else
-            holder.quality.setText("Quality not defined");
-        if (format.type != null)
-            holder.type.setText(format.title);
-        else
-            holder.type.setText("Type not defined");
+        holder.quality.setText(Utils.getTitle(format));
+        holder.ext.setText(format.extension);
+        holder.itag.setText(String.format(Locale.UK, "%d", format.itag));
 
-        if (format.url != null)
-            holder.url.setText(format.description);
-        else
-            holder.url.setText("URL not found");
-
-        holder.itag.setText(format.itag + "");
+        holder.audio.setBackgroundResource(format.audio ? R.drawable.ic_volume_up_black_24dp : R.drawable.ic_volume_off_black_24dp);
+        holder.video.setBackgroundResource(format.video ? R.drawable.ic_videocam_black_24dp: R.drawable.ic_videocam_off_black_24dp);
     }
 
     @Override
