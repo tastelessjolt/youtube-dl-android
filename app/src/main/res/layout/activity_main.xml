@@ -26,7 +26,6 @@
             android:text="@string/initial_log"
             android:textColor="@android:color/holo_green_light"
             android:textSize="19sp"
-            app:layout_constraintBottom_toTopOf="@+id/btnAllFormats"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
@@ -94,5 +93,12 @@
         android:src="@drawable/ic_content_copy_24"
         app:layout_anchor="@id/bar">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+    <include
+        layout="@layout/activity_formats"
+        android:id="@+id/bottom_sheet"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="300dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -24,6 +24,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.code.regexp.Matcher;
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Extractor extractor;
 
     Pattern youtubeUrlPattern;
+
+    BottomSheetBehavior<View> bottomSheetBehavior;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -99,6 +103,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         extractor = new Extractor();
 
         youtubeUrlPattern = Pattern.compile(extractor._VALID_URL);
+
+        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet));
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+
+        BottomAppBar bar = (BottomAppBar) findViewById(R.id.bar);
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle the navigation click by showing a BottomDrawer etc.
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
 
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
@@ -163,13 +180,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (clipboard.hasPrimaryClip()) {
             ClipData clipData = clipboard.getPrimaryClip();
             Uri uri;
-            String url;
+            CharSequence url;
             if ( clipData.getItemCount() > 0 ) {
                 if ((uri = clipData.getItemAt(0).getUri()) != null) {
                     urlEdit.setText(uri.toString());
                 }
-                else if ((url = clipData.getItemAt(0).getText().toString()) != null ) {
-                    urlEdit.setText(url);
+                else if ((url = clipData.getItemAt(0).getText()) != null ) {
+                    urlEdit.setText(url.toString());
                 }
                 startPoint(button);
             }
@@ -218,7 +235,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         public void download (String url, String name, String extension) {
-
             DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
             req.setTitle(name)
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, File.separator + name + "." + extension)
