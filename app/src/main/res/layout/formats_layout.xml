@@ -7,6 +7,8 @@
     style="@style/Widget.MaterialComponents.CardView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:translationZ="0dp"
+    android:elevation="0dp"
     app:behavior_hideable="true"
     app:behavior_peekHeight="300dp"
 
@@ -35,13 +37,25 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/video_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="Title"
+            android:paddingLeft="@dimen/text_margin"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/formats_heading" />
+
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:background="@android:color/darker_gray"
-            app:layout_constraintTop_toBottomOf="@+id/formats_heading" />
+            app:layout_constraintTop_toBottomOf="@+id/video_title" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"

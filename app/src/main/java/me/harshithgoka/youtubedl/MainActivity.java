@@ -16,8 +16,8 @@ import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -54,15 +54,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Pattern youtubeUrlPattern;
 
-    RecyclerView recyclerView;
-    FormatAdapter adapter;
-    LinearLayoutManager linearLayoutManager;
+    RecyclerView formatsRecyclerView;
+    FormatAdapter formatAdapter;
+    LinearLayoutManager formatLinearLayoutManager;
+
+    RecyclerView viRecyclerView;
+    VideoInfoAdapter viAdapter;
+    LinearLayoutManager viLinearLayoutManager;
 
     BottomSheetBehavior<View> bottomSheetBehavior;
     List<ProgressBar> progressBars;
 
     SharedPreferences mPrefs;
     ArrayList<VideoInfo> history;
+
+    TextView videoTitle;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -115,24 +122,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         youtubeUrlPattern = Pattern.compile(extractor._VALID_URL);
 
+        // Formats Holder Bottom Sheet
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet));
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-        recyclerView = findViewById(R.id.recycler_view);
-        adapter = new FormatAdapter(getApplicationContext(), formats);
-        recyclerView.setAdapter(adapter);
-        linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(linearLayoutManager);
+        videoTitle = findViewById(R.id.video_title);
+        // Formats
+        formatsRecyclerView = findViewById(R.id.recycler_view);
+        formatAdapter = new FormatAdapter(getApplicationContext(), formats);
+        formatsRecyclerView.setAdapter(formatAdapter);
+        formatLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        formatsRecyclerView.setLayoutManager(formatLinearLayoutManager);
 
-        BottomAppBar bar = (BottomAppBar) findViewById(R.id.bar);
-        bar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the navigation click by showing a BottomDrawer etc.
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
-
+        // History Get Content
         mPrefs = getPreferences(MODE_PRIVATE);
         Gson gson = new Gson();
         String json = mPrefs.getString(HISTORY, "");
@@ -142,6 +144,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (history == null) {
             history = new ArrayList<>();
         }
+
+        // History
+        viRecyclerView = findViewById(R.id.historyRecyclerView);
+        viAdapter = new VideoInfoAdapter(this, history);
+        viRecyclerView.setAdapter(viAdapter);
+        viLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        viRecyclerView.setLayoutManager(viLinearLayoutManager);
+
+
+        BottomAppBar bar = (BottomAppBar) findViewById(R.id.bar);
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle the navigation click by showing a BottomDrawer etc.
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
 
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
@@ -241,6 +260,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    void loadVideoInfo(VideoInfo videoInfo) {
+        Log.d("II", "Loading videoInfo");
+        formats.clear();
+        formatAdapter.notifyItemRangeRemoved(0, videoInfo.formats.size());
+        formats.addAll(videoInfo.formats);
+        formatAdapter.notifyItemRangeInserted(0, videoInfo.formats.size());
+        videoTitle.setText(videoInfo.title);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -279,12 +308,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected void onPostExecute(VideoInfo videoInfo) {
             hideLoading();
             if (videoInfo != null) {
+
                 List<Format> formats = videoInfo.formats;
-                history.add(0, videoInfo);
                 if (formats.size() > 0) {
-                    MainActivity.this.formats.clear();
-                    MainActivity.this.formats.addAll(formats);
-                    MainActivity.this.adapter.notifyDataSetChanged();
+                    history.add(0, videoInfo);
+                    viAdapter.notifyItemInserted(0);
+                    loadVideoInfo(videoInfo);
 
                     String finalurl = formats.get(0).url;
                     println(finalurl);

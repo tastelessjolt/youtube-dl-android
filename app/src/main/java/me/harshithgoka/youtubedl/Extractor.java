@@ -200,6 +200,9 @@ public class Extractor {
         String response;
         String video_id = "";
         String thumbnail_url = "";
+        String length = "";
+        String view_count = "";
+        String author = "";
         JSONObject ret = new JSONObject();
 
         try {
@@ -209,11 +212,17 @@ public class Extractor {
             Pattern ytcond_end = Pattern.compile(";[ ]*ytplayer\\.load");
             String json = ytcond_end.split(ytconf.split(response)[1])[0];
             JSONObject ytconfig = new JSONObject(json);
-            ret.put ("data", ytconfig);
+            ret.put("data", ytconfig);
             ret.put("status", true);
 
-            String fmts = ytconfig.getJSONObject("args").getString("url_encoded_fmt_stream_map") + "," + ytconfig.getJSONObject("args").getString("adaptive_fmts");
-            String title = ytconfig.getJSONObject("args").optString("title", "videoplayback");
+            JSONObject args = ytconfig.getJSONObject("args");
+            String fmts = args.getString("url_encoded_fmt_stream_map") + "," + ytconfig.getJSONObject("args").getString("adaptive_fmts");
+            String title = args.optString("title", "videoplayback");
+            video_id = args.getString("video_id");
+            length = args.getString("length_seconds");
+            view_count = args.getString("view_count");
+            author = args.getString("author");
+
             String[] fmts_enc = fmts.split(",");
             List<Format> formats = new ArrayList<>();
 
@@ -242,7 +251,7 @@ public class Extractor {
                     Pattern playerType = Pattern.compile("(html5player-([^/]+?)(?:/html5player(?:-new)?)?\\.js)|((?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\\.js)");
                     m = playerType.matcher(player_url);
                     if (!m.find()) {
-                        Log.d("ERR","Couldn't find Player URL");
+                        Log.d("ERR", "Couldn't find Player URL");
                         Log.d("ERR", response);
                     }
 
@@ -262,7 +271,7 @@ public class Extractor {
 
                 f.url = url;
 
-                for (String param: params) {
+                for (String param : params) {
                     if (param.equals("itag")) {
                         f.setItag(Integer.parseInt(query_pairs.get(param)));
                     }
@@ -279,10 +288,16 @@ public class Extractor {
                 formats.add(f);
             }
 
-            VideoInfo videoInfo = new VideoInfo(video_id, thumbnail_url, formats);
+            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, formats);
             return videoInfo;
 
-
+        } catch (IllegalStateException e) {
+            try {
+                ret.put("message", e.toString());
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
+            Log.d("Err", e.toString());
         } catch (IOException e) {
             try {
                 ret.put("message", e.toString());
