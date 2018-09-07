@@ -9,6 +9,7 @@
     android:layout_height="match_parent"
     android:translationZ="0dp"
     android:elevation="0dp"
+    android:visibility="gone"
     app:behavior_hideable="true"
     app:behavior_peekHeight="300dp"
 

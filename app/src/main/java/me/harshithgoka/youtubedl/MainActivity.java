@@ -11,12 +11,17 @@ import android.net.Uri;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -100,6 +105,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 
+        }
+
+        String appLogoText = "<font color=#c62828>Y</font>ou<font color=#e15827>T</font>ube<font color=#33745f>DL</font>";
+        TextView appLogo = findViewById(R.id.app_logo);
+        appLogo.setText(Html.fromHtml(appLogoText));
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(false);
         }
 
         this.btnCopy = findViewById(R.id.paste);
@@ -190,6 +207,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String connectionsJSONString = new Gson().toJson(history);
         editor.putString(HISTORY, connectionsJSONString);
         editor.apply();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        Log.d("INFO", "onCreateOptionsMenu called");
+        getMenuInflater().inflate(R.menu.menu_formats, menu);
+        return true;
+    }
+
+    public void openSettingPage() {
+        Toast.makeText(getApplicationContext(), "Settings page coming soon!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.action_settings:
+                openSettingPage();
+                return true;
+            default:
+                break;
+        }
+
+        return false;
     }
 
     private void println (String s) {

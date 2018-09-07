@@ -57,14 +57,6 @@
                 <data android:mimeType="text/plain"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name=".FormatsActivity"
-            android:label="@string/title_activity_formats"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="me.harshithgoka.youtubedl.MainActivity" />
-        </activity>
     </application>
 
 </manifest>
