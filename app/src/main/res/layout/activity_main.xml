@@ -28,8 +28,9 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -72,7 +73,8 @@
                     android:layout_height="match_parent"
                     android:textSize="20sp"
                     android:hint="@string/url_hint"
-                    android:inputType="textUri" />
+                    android:inputType="textUri"
+                    android:imeOptions="actionGo"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <ProgressBar
@@ -103,46 +105,65 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.bottomappbar.BottomAppBar
-        android:id="@+id/bar"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_gravity="bottom"
-        android:elevation="10dp"
-        android:translationZ="10dp"
-        app:backgroundTint="@color/colorPrimary"
-        app:navigationIcon="@drawable/ic_menu_24" />
+    <!--<com.google.android.material.button.MaterialButton-->
+        <!--android:id="@+id/btnDownload"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:visibility="gone"/>-->
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/paste"
-        style="@style/Widget.MaterialComponents.FloatingActionButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:backgroundTint="@color/colorAccent"
-        android:src="@drawable/ic_content_copy_24"
-        app:layout_anchor="@id/bar">
-    </com.google.android.material.floatingactionbutton.FloatingActionButton>
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="18dp"
+        android:layout_marginRight="18dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:textSize="16sp"
+        android:fontFamily="@font/product_sans"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textStyle="bold"
+        android:textColor="@color/textColor"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+        android:text="Paste"
+        android:elevation="6dp"
+        app:cornerRadius="32dp"
+        app:iconPadding="12dp"
+        app:iconSize="24dp"
+        app:icon="@drawable/ic_outline_file_copy_24px"
+        app:iconTint="@android:color/white"
+        app:iconTintMode="multiply"
 
-    <View
-        android:id="@+id/dummy"
-        android:layout_width="1dp"
-        android:layout_height="24dp"
-        app:layout_anchor="@id/paste"
-        app:layout_anchorGravity="top" />
+        app:backgroundTint="@color/backgroundColor"
+        app:layout_anchor="@id/mainContent"
+        app:layout_anchorGravity="bottom|right">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnDownload"
-        style="@style/Widget.MaterialComponents.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
-        android:src="@drawable/ic_send_black_24dp"
-        app:backgroundTint="@color/colorAccent"
-        app:fabCradleMargin="@dimen/fab_margin"
-        app:fabCradleVerticalOffset="@dimen/fab_margin"
-        app:layout_anchor="@id/dummy"
-        app:layout_anchorGravity="top"
-        tools:srcCompat="@tools:sample/backgrounds/scenic[2]" />
+    </com.google.android.material.button.MaterialButton>
+
+    <!--<View-->
+        <!--android:id="@+id/dummy"-->
+        <!--android:layout_width="1dp"-->
+        <!--android:layout_height="24dp"-->
+        <!--app:layout_anchor="@id/paste"-->
+        <!--app:layout_anchorGravity="top" />-->
+
+    <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
+        <!--android:id="@+id/btnDownload"-->
+        <!--style="@style/Widget.MaterialComponents.FloatingActionButton"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="end|top"-->
+        <!--android:src="@drawable/ic_send_black_24dp"-->
+        <!--app:backgroundTint="@color/colorAccent"-->
+        <!--app:fabCradleMargin="@dimen/fab_margin"-->
+        <!--app:fabCradleVerticalOffset="@dimen/fab_margin"-->
+        <!--app:layout_anchor="@id/dummy"-->
+        <!--app:layout_anchorGravity="top"-->
+        <!--tools:srcCompat="@tools:sample/backgrounds/scenic[2]" />-->
 
 
     <include layout="@layout/formats_layout"/>

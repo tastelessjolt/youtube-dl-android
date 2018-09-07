@@ -20,9 +20,11 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -30,6 +32,7 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -50,8 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     EditText urlEdit;
     TextView log;
-    FloatingActionButton btnCopy;
-    FloatingActionButton btnDownload;
+    MaterialButton btnCopy;
 
     List<Format> formats;
 
@@ -120,15 +122,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         this.btnCopy = findViewById(R.id.paste);
-        this.btnDownload = findViewById(R.id.btnDownload);
 
         this.btnCopy.setOnClickListener(this);
-        this.btnDownload.setOnClickListener(this);
 
         log = (TextView) findViewById(R.id.textView);
         log.setMovementMethod(new ScrollingMovementMethod());
 
         urlEdit = (EditText) findViewById(R.id.url);
+
+        urlEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                switch (actionId) {
+                    case EditorInfo.IME_ACTION_GO:
+                        Log.d("URL", v.getText().toString());
+                        startPoint(null);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
 
         progressBars = new ArrayList<>();
         progressBars.add((ProgressBar) findViewById(R.id.progressBar));
@@ -168,16 +182,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viRecyclerView.setAdapter(viAdapter);
         viLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
         viRecyclerView.setLayoutManager(viLinearLayoutManager);
-
-
-        BottomAppBar bar = (BottomAppBar) findViewById(R.id.bar);
-        bar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the navigation click by showing a BottomDrawer etc.
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
 
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
@@ -321,9 +325,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 pasteFromClipboard(v);
                 break;
 
-            case R.id.btnDownload:
-                startPoint(v);
-                break;
+//            case R.id.btnDownload:
+//                startPoint(v);
+//                break;
         }
     }
 
