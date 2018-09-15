@@ -34,6 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -73,26 +74,40 @@
                     android:id="@+id/url"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:textSize="20sp"
                     android:hint="@string/url_hint"
+                    android:imeOptions="actionGo"
                     android:inputType="textUri"
-                    android:imeOptions="actionGo"/>
+                    android:textSize="20sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <ProgressBar
                 android:id="@+id/progressBar2"
                 style="?android:attr/progressBarStyle"
-                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <TextView
+                android:id="@+id/empty_history"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/renner_light"
+                android:text="@string/empty_history"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/historyRecyclerView" />
+
+            <me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport
                 android:id="@+id/historyRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -102,7 +117,9 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
+                app:layout_constraintTop_toBottomOf="@+id/textView">
+
+            </me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
@@ -139,7 +156,9 @@
         app:layout_anchorGravity="bottom|end">
 
     </com.google.android.material.button.MaterialButton>
-    
-    <include layout="@layout/formats_layout"/>
+
+    <include
+        layout="@layout/formats_layout"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

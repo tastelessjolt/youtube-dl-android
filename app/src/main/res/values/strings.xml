@@ -96,4 +96,5 @@
     <string name="initial_log">Progress shows here ---->\n</string>
     <string name="start_button">Start</string>
     <string name="formats_button">All formats</string>
+    <string name="empty_history">It\'s lonely here, you could download a few videos.</string>
 </resources>

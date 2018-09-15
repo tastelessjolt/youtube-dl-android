@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -61,11 +62,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Pattern youtubeUrlPattern;
 
-    RecyclerView formatsRecyclerView;
+    RecyclerViewEmptySupport formatsRecyclerView;
     FormatAdapter formatAdapter;
     LinearLayoutManager formatLinearLayoutManager;
 
-    RecyclerView viRecyclerView;
+    RecyclerViewEmptySupport viRecyclerView;
     VideoInfoAdapter viAdapter;
     LinearLayoutManager viLinearLayoutManager;
 
@@ -180,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // History
         viRecyclerView = findViewById(R.id.historyRecyclerView);
         viAdapter = new VideoInfoAdapter(this, history);
+        viRecyclerView.setEmptyView(findViewById(R.id.empty_history));
         viRecyclerView.setAdapter(viAdapter);
         viLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
         viRecyclerView.setLayoutManager(viLinearLayoutManager);
