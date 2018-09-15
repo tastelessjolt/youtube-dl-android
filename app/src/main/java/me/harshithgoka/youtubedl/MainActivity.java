@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         startPoint(null);
                         return true;
                     default:
+                        Log.d("Edit text GOT", actionId + " " + event.getKeyCode());
                         return false;
                 }
             }

@@ -29,6 +29,8 @@
     </com.google.android.material.appbar.AppBarLayout>
     <androidx.core.widget.NestedScrollView
         android:id="@+id/mainContent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -119,7 +121,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="18dp"
-        android:layout_marginRight="18dp"
+        android:layout_marginEnd="18dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:textSize="16sp"
@@ -140,7 +142,7 @@
 
         app:backgroundTint="@color/backgroundColor"
         app:layout_anchor="@id/mainContent"
-        app:layout_anchorGravity="bottom|right">
+        app:layout_anchorGravity="bottom|end">
 
     </com.google.android.material.button.MaterialButton>
 
