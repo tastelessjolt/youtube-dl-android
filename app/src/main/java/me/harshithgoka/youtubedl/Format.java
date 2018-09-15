@@ -91,10 +91,14 @@ public class Format implements Parcelable {
         parcel.writeString(type);
     }
 
+    public String sanitizeFilename() {
+        return title.replaceAll("/", "_");
+    }
+
     public void download (Context context) {
         String extension = Utils.getExtension(this);
-        String name = title;
-        Log.d("Filename", title + "." + extension);
+        String name = sanitizeFilename();
+        Log.d("Filename", name + "." + extension);
 
         DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
         req.setTitle(name)
