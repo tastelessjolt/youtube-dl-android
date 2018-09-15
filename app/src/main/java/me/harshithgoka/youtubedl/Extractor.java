@@ -1,5 +1,6 @@
 package me.harshithgoka.youtubedl;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -123,15 +124,34 @@ public class Extractor {
                     m = funcNamePattern.matcher(response);
                     if (m.find())
                         func_name = m.group(2);
-                    else
-                        return null;
+                    else {
+                        funcNamePattern = Pattern.compile("yt\\.akamaized\\.net/\\)\\s*\\|\\|\\s*.*?\\s*c\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*([a-zA-Z0-9$]+)\\(");
+                        m = funcNamePattern.matcher(response) ;
+                        if (m.find()){
+                            func_name = m.group(1) ;
+                        } else {
+                            funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*([a-zA-Z0-9$]+)\\(") ;
+                            m = funcNamePattern.matcher(response) ;
+                            if (m.find()){
+                                func_name = m.group(1) ;
+                            } else {
+                                return null ;
+                            }
+                        }
+                    }
                 }
 
 
-                Fun fun = jsInterpreter.extractFunction(func_name);
-                jsInterpreter.setSigFun(fun);
 
-                player_cache.put(playerID, jsInterpreter);
+                if (!TextUtils.isEmpty(func_name)){
+                    Fun fun = jsInterpreter.extractFunction(func_name);
+                    jsInterpreter.setSigFun(fun);
+
+                    player_cache.put(playerID, jsInterpreter);
+                } else {
+                    return null ;
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -233,11 +253,16 @@ public class Extractor {
                 String[] pairs = fmt.split("&");
                 for (String pair : pairs) {
                     int idx = pair.indexOf("=");
-                    query_pairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+                    if (idx != -1 && idx < pair.length()){
+                        query_pairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+                    }
+
                 }
 
                 String url = query_pairs.get("url");
-
+                if (TextUtils.isEmpty(url)){
+                    continue ;
+                }
                 Set<String> params = query_pairs.keySet();
                 if (params.contains("sig"))
                     url += "&signature=" + query_pairs.get("sig");
@@ -311,9 +336,8 @@ public class Extractor {
             } catch (JSONException e1) {
                 e1.printStackTrace();
             }
-//                e.printStackTrace();
+// e.printStackTrace();
         }
-
 
         return null;
     }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="200"
+        android:font="@font/renner_light"/>
+
+    <font
+        android:fontStyle="italic"
+        android:fontWeight="200"
+        android:font="@font/renner_lightitalic"/>
+
+
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="300"
+        android:font="@font/renner_book"/>
+
+    <font
+        android:fontStyle="italic"
+        android:fontWeight="300"
+        android:font="@font/renner_bookitalic"/>
+
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="500"
+        android:font="@font/renner_medium"/>
+
+    <font
+        android:fontStyle="italic"
+        android:fontWeight="500"
+        android:font="@font/renner_mediumitalic"/>
+
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="700"
+        android:font="@font/renner_bold"/>
+
+    <font
+        android:fontStyle="italic"
+        android:fontWeight="700"
+        android:font="@font/renner_bolditalic"/>
+
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="800"
+        android:font="@font/renner_black"/>
+
+    <font
+        android:fontStyle="italic"
+        android:fontWeight="800"
+        android:font="@font/renner_blackitalic"/>
+
+</font-family>
