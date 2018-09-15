@@ -1,9 +1,15 @@
 # youtube-dl-android
 
-## A basic implementation of youtube-dl in Android/Java
+## Implementation of youtube-dl in Android/Java
 
-As far I know it can download any video/audio on youtube
+It can download any video/audio on youtube except videos with age filter. (will be fixed soon)
 If it doesn't work for any link, please raise an Issue with the link.
+
+## Features
+
+* Download in any format supported
+* Downloads using the built-in downloader `DownloadManager`
+* History of queried URLs
 
 ## Credits
 [youtube dl](https://github.com/rg3/youtube-dl)
