@@ -107,12 +107,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!--<com.google.android.material.button.MaterialButton-->
-        <!--android:id="@+id/btnDownload"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:visibility="gone"/>-->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/paste"
         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -145,29 +139,7 @@
         app:layout_anchorGravity="bottom|end">
 
     </com.google.android.material.button.MaterialButton>
-
-    <!--<View-->
-        <!--android:id="@+id/dummy"-->
-        <!--android:layout_width="1dp"-->
-        <!--android:layout_height="24dp"-->
-        <!--app:layout_anchor="@id/paste"-->
-        <!--app:layout_anchorGravity="top" />-->
-
-    <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
-        <!--android:id="@+id/btnDownload"-->
-        <!--style="@style/Widget.MaterialComponents.FloatingActionButton"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="end|top"-->
-        <!--android:src="@drawable/ic_send_black_24dp"-->
-        <!--app:backgroundTint="@color/colorAccent"-->
-        <!--app:fabCradleMargin="@dimen/fab_margin"-->
-        <!--app:fabCradleVerticalOffset="@dimen/fab_margin"-->
-        <!--app:layout_anchor="@id/dummy"-->
-        <!--app:layout_anchorGravity="top"-->
-        <!--tools:srcCompat="@tools:sample/backgrounds/scenic[2]" />-->
-
-
+    
     <include layout="@layout/formats_layout"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -281,11 +281,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void pasteFromClipboard(View button) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard.hasPrimaryClip()) {
+        if (clipboard != null && clipboard.hasPrimaryClip()) {
             ClipData clipData = clipboard.getPrimaryClip();
             Uri uri;
             CharSequence url;
-            if ( clipData.getItemCount() > 0 ) {
+            if ( clipData != null && clipData.getItemCount() > 0 ) {
                 if ((uri = clipData.getItemAt(0).getUri()) != null) {
                     urlEdit.setText(uri.toString());
                 }
@@ -325,10 +325,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.paste:
                 pasteFromClipboard(v);
                 break;
-
-//            case R.id.btnDownload:
-//                startPoint(v);
-//                break;
         }
     }
 
