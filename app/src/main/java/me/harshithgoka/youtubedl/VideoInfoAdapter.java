@@ -4,16 +4,20 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class VideoInfoAdapter extends RecyclerView.Adapter<VideoInfoAdapter.VideoInfoViewHolder> {
@@ -41,6 +45,10 @@ public class VideoInfoAdapter extends RecyclerView.Adapter<VideoInfoAdapter.Vide
         holder.title.setText(videoInfo.title);
         holder.videoId.setText(videoInfo.video_id);
         holder.author.setText(videoInfo.author);
+
+        Glide.with(context)
+            .load(videoInfo.thumbnail_url)
+            .into(holder.thumbnail);
     }
 
     @Override
@@ -54,12 +62,14 @@ public class VideoInfoAdapter extends RecyclerView.Adapter<VideoInfoAdapter.Vide
     class VideoInfoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView title, videoId, author;
         View copyLink;
+        AppCompatImageView thumbnail;
         public VideoInfoViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.video_title);
             videoId = itemView.findViewById(R.id.videoId);
             copyLink = itemView.findViewById(R.id.copyLink);
             author = itemView.findViewById(R.id.author);
+            thumbnail = itemView.findViewById(R.id.thumb);
             copyLink.setOnClickListener(this);
             itemView.setOnClickListener(this);
         }

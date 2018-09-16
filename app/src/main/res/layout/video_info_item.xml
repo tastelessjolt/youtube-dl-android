@@ -25,9 +25,9 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Title"
-            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Title"
             app:layout_constraintEnd_toStartOf="@+id/copyLink"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/thumb"
             app:layout_constraintTop_toTopOf="parent" />
 
         <View
@@ -66,11 +66,24 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:text="Author"
+            android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Subtitle"
             android:textColor="@color/colorPrimaryDark"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/videoId"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/thumb"
             app:layout_constraintTop_toBottomOf="@+id/video_title" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/thumb"
+            android:layout_width="90dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>

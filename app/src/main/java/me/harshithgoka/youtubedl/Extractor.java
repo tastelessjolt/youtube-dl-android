@@ -12,7 +12,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -242,6 +244,7 @@ public class Extractor {
             length = args.getString("length_seconds");
             view_count = args.getString("view_count");
             author = args.getString("author");
+            thumbnail_url = args.optString("thumbnail_url");
 
             String[] fmts_enc = fmts.split(",");
             List<Format> formats = new ArrayList<>();
@@ -313,7 +316,7 @@ public class Extractor {
                 formats.add(f);
             }
 
-            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, formats);
+            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, new Timestamp(new Date().getTime()), formats);
             return videoInfo;
 
         } catch (IllegalStateException e) {

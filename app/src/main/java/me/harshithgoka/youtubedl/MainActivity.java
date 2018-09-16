@@ -313,8 +313,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void loadVideoInfo(VideoInfo videoInfo) {
         Log.d("II", "Loading videoInfo");
+        int numRemoved = formats.size();
         formats.clear();
-        formatAdapter.notifyItemRangeRemoved(0, videoInfo.formats.size());
+        formatAdapter.notifyItemRangeRemoved(0, numRemoved);
         formats.addAll(videoInfo.formats);
         formatAdapter.notifyItemRangeInserted(0, videoInfo.formats.size());
         videoTitle.setText(videoInfo.title);
@@ -358,8 +359,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 List<Format> formats = videoInfo.formats;
                 if (formats.size() > 0) {
-                    history.add(0, videoInfo);
-                    viAdapter.notifyItemInserted(0);
+                    int index;
+                    if ((index = history.indexOf(videoInfo)) != -1) {
+                        history.remove(index);
+                        history.add(0, videoInfo);
+                        viAdapter.notifyItemMoved(index, 0);
+                    }
+                    else {
+                        history.add(0, videoInfo);
+                        viAdapter.notifyItemInserted(0);
+                    }
                     loadVideoInfo(videoInfo);
 
                     String finalurl = formats.get(0).url;

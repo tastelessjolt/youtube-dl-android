@@ -37,6 +37,9 @@ dependencies {
 
     implementation 'com.github.tony19:named-regexp:0.2.5'
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 }
 repositories {
     mavenCentral()
