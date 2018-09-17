@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="formats">
+        <item>Video + Audio</item>
+        <item>Audio Only</item>
+        <item>Video Only</item>
+        <item>720p V+A</item>
+    </string-array>
+</resources>

@@ -1,12 +1,7 @@
-package me.harshithgoka.youtubedl;
-
-import android.os.Parcel;
-import android.os.Parcelable;
+package me.harshithgoka.youtubedl.YoutubeDL;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 

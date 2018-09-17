@@ -1,17 +1,17 @@
-package me.harshithgoka.youtubedl.Utils;
+package me.harshithgoka.youtubedl.YoutubeDL.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
 
-import me.harshithgoka.youtubedl.Format;
+import me.harshithgoka.youtubedl.YoutubeDL.Format;
 
 /**
  * Created by harshithg on 22/1/18.
  */
 
-public class Utils {
+public class FormatUtils {
 
     public static String _formats = "{\n" +
             "   \"5\":{\n" +

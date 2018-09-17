@@ -1,4 +1,4 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.Activities;
 
 import android.Manifest;
 import android.content.ClipData;
@@ -30,10 +30,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -43,8 +41,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import me.harshithgoka.youtubedl.YoutubeDL.Extractor;
+import me.harshithgoka.youtubedl.YoutubeDL.Format;
+import me.harshithgoka.youtubedl.Adapters.FormatAdapter;
+import me.harshithgoka.youtubedl.R;
 import me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport;
+import me.harshithgoka.youtubedl.YoutubeDL.VideoInfo;
+import me.harshithgoka.youtubedl.Adapters.VideoInfoAdapter;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -311,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    void loadVideoInfo(VideoInfo videoInfo) {
+    public void loadVideoInfo(VideoInfo videoInfo) {
         Log.d("II", "Loading videoInfo");
         int numRemoved = formats.size();
         formats.clear();

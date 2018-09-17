@@ -1,7 +1,6 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.YoutubeDL;
 
 import android.app.DownloadManager;
-import android.content.ContentProvider;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
@@ -11,7 +10,7 @@ import android.util.Log;
 
 import java.io.File;
 
-import me.harshithgoka.youtubedl.Utils.Utils;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
 
 /**
  * Created by harshithgoka on 12/16/2017 AD.
@@ -39,9 +38,9 @@ public class Format implements Parcelable {
         quality = in.readString();
         type = in.readString();
 
-        extension = Utils.getExtension(this);
-        content = Utils.getTitle(this);
-        description = Utils.getDescription(this);
+        extension = FormatUtils.getExtension(this);
+        content = FormatUtils.getTitle(this);
+        description = FormatUtils.getDescription(this);
     }
 
     public void setFormat(Format fmt) {
@@ -73,9 +72,9 @@ public class Format implements Parcelable {
     public void setItag(int itag) {
         this.itag = itag;
 
-        extension = Utils.getExtension(this);
-        content = Utils.getTitle(this);
-        description = Utils.getDescription(this);
+        extension = FormatUtils.getExtension(this);
+        content = FormatUtils.getTitle(this);
+        description = FormatUtils.getDescription(this);
     }
 
     @Override
@@ -96,7 +95,7 @@ public class Format implements Parcelable {
     }
 
     public void download (Context context) {
-        String extension = Utils.getExtension(this);
+        String extension = FormatUtils.getExtension(this);
         String name = sanitizeFilename();
         Log.d("Filename", name + "." + extension);
 

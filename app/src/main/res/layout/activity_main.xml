@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
-    tools:context="me.harshithgoka.youtubedl.MainActivity">
+    tools:context="me.harshithgoka.youtubedl.Activities.MainActivity">
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">

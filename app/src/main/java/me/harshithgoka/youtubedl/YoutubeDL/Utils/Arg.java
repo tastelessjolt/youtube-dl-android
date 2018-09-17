@@ -1,12 +1,8 @@
-package me.harshithgoka.youtubedl.Utils;
+package me.harshithgoka.youtubedl.YoutubeDL.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by harshithg on 17/1/18.

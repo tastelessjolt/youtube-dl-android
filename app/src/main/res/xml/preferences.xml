@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.preference.SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="autoDownload"
+        android:summary="Download automatically as soon as it's fetched"
+        android:title="Auto Download" />
+    <androidx.preference.ListPreference
+        android:defaultValue="720p V+A"
+        android:entries="@array/formats"
+        android:entryValues="@array/formats"
+        android:key="default_format"
+        android:title="Default Format" />
+    <androidx.preference.EditTextPreference
+        android:defaultValue="Downloads"
+        android:key="download_folder"
+        android:selectAllOnFocus="true"
+        android:singleLine="false"
+        android:summary="Set the default download folder"
+        android:title="Default Download Folder" />
+</PreferenceScreen>

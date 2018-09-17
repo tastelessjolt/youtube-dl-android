@@ -1,10 +1,9 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.Adapters;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +18,16 @@ import java.util.Locale;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.recyclerview.widget.RecyclerView;
+import me.harshithgoka.youtubedl.Activities.MainActivity;
+import me.harshithgoka.youtubedl.R;
+import me.harshithgoka.youtubedl.YoutubeDL.VideoInfo;
 
 public class VideoInfoAdapter extends RecyclerView.Adapter<VideoInfoAdapter.VideoInfoViewHolder> {
 
     List<VideoInfo> videoInfos;
     Context context;
 
-    VideoInfoAdapter(Context context, List<VideoInfo> videoInfos) {
+    public VideoInfoAdapter(Context context, List<VideoInfo> videoInfos) {
         this.context = context;
         this.videoInfos = videoInfos;
     }

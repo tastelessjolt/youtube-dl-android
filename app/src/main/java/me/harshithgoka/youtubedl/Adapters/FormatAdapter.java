@@ -1,11 +1,13 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.Adapters;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import androidx.recyclerview.widget.RecyclerView;
-import me.harshithgoka.youtubedl.Utils.Utils;
+import me.harshithgoka.youtubedl.R;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
+import me.harshithgoka.youtubedl.YoutubeDL.Format;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,7 +75,7 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
     @Override
     public void onBindViewHolder(final FormatAdapter.MyViewHolder holder, int position) {
         Format format = formats.get(position);
-        holder.quality.setText(Utils.getTitle(format));
+        holder.quality.setText(FormatUtils.getTitle(format));
         holder.ext.setText(format.extension);
         holder.itag.setText(String.format(Locale.UK, "%d", format.itag));
 

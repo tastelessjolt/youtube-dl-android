@@ -1,4 +1,4 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.YoutubeDL;
 
 import java.io.IOException;
 
@@ -10,11 +10,11 @@ public class HttpGetter {
 
     OkHttpClient client;
 
-    HttpGetter() {
+    public HttpGetter() {
         client = new OkHttpClient();
     }
 
-    String run(String url) throws IOException {
+    public String run(String url) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
                 .build();

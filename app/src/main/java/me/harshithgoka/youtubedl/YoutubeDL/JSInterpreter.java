@@ -1,4 +1,4 @@
-package me.harshithgoka.youtubedl;
+package me.harshithgoka.youtubedl.YoutubeDL;
 
 import android.util.Log;
 import android.util.Pair;
@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 /*
@@ -19,12 +18,11 @@ import java.util.regex.Pattern;
 import com.google.code.regexp.Matcher;
 import com.google.code.regexp.Pattern;
 
-import kotlin.TuplesKt;
-import me.harshithgoka.youtubedl.Utils.Arg;
-import me.harshithgoka.youtubedl.Utils.Fun;
-import me.harshithgoka.youtubedl.Utils.Utils;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.Arg;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.Fun;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
 
-import static me.harshithgoka.youtubedl.Utils.Arg.VAL;
+import static me.harshithgoka.youtubedl.YoutubeDL.Utils.Arg.VAL;
 
 /**
  * Created by harshithg on 16/1/18.
@@ -283,7 +281,7 @@ public class JSInterpreter {
         if (m.find() && m.start() == 0) {
             if (m.group(1) != null) {
                 String variable = m.group(1);
-                String member = Utils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
+                String member = FormatUtils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
                 String arg_str = m.group(4);
 
                 JSONObject obj;
@@ -624,7 +622,7 @@ public class JSInterpreter {
             while (m1.find()) {
                 String[] args = m1.group(2).split(",");
                 try {
-                    obj.put(Utils.removeQuotes(m1.group(1)), new Fun(m1.group(1), args, m1.group(3)));
+                    obj.put(FormatUtils.removeQuotes(m1.group(1)), new Fun(m1.group(1), args, m1.group(3)));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
