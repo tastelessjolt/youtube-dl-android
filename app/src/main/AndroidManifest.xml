@@ -15,6 +15,7 @@
         <activity android:name=".Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
@@ -24,9 +25,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
                     android:host="www.youtube.com"
-                    android:pathPrefix="/watch" />
+                    android:pathPrefix="/watch"
+                    android:scheme="https" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -35,9 +36,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
                     android:host="m.youtube.com"
-                    android:pathPattern="/watch" />
+                    android:pathPattern="/watch"
+                    android:scheme="https" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -46,15 +47,24 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="https"
-                    android:host="youtu.be" />
+                    android:host="youtu.be"
+                    android:scheme="https" />
             </intent-filter>
-
             <intent-filter>
-                <action android:name="android.intent.action.SEND"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="text/plain"/>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".Activities.SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".Activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activities.MainActivity"/>
         </activity>
     </application>
 

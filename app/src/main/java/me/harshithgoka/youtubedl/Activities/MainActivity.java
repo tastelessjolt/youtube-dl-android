@@ -45,7 +45,7 @@ import me.harshithgoka.youtubedl.YoutubeDL.Extractor;
 import me.harshithgoka.youtubedl.YoutubeDL.Format;
 import me.harshithgoka.youtubedl.Adapters.FormatAdapter;
 import me.harshithgoka.youtubedl.R;
-import me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport;
+import me.harshithgoka.youtubedl.CustomUI.RecyclerViewEmptySupport;
 import me.harshithgoka.youtubedl.YoutubeDL.VideoInfo;
 import me.harshithgoka.youtubedl.Adapters.VideoInfoAdapter;
 
@@ -229,6 +229,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void openSettingPage() {
         Toast.makeText(getApplicationContext(), "Settings page coming soon!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     @Override

@@ -54,7 +54,7 @@
             android:background="@android:color/darker_gray"
             app:layout_constraintTop_toBottomOf="@+id/video_title" />
 
-        <me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport
+        <me.harshithgoka.youtubedl.CustomUI.RecyclerViewEmptySupport
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -63,7 +63,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/progressBar">
 
-        </me.harshithgoka.youtubedl.UI.RecyclerViewEmptySupport>
+        </me.harshithgoka.youtubedl.CustomUI.RecyclerViewEmptySupport>
 
         <ProgressBar
             android:id="@+id/progressBar"
