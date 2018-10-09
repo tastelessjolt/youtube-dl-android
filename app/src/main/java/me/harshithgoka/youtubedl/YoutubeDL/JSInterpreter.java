@@ -485,7 +485,6 @@ public class JSInterpreter {
 
     Arg opFunc (String op, Arg cur, Arg right_val) {
         Arg ret = new Arg();
-        // TODO: do actual operations here
 
         if (op.equals("|=") | op.equals("|")) {
             try {

@@ -52,7 +52,7 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
             assert clipboard != null;
             ClipData clip = ClipData.newRawUri("DownloadURL", Uri.parse(finalurl));
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(context, String.format("Your video \"%s\" is now downloading. Check the notification area.", formats.get(getLayoutPosition()).title), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, String.format("Your video \"%s\" is now downloading. Check the notification area.", formats.get(getLayoutPosition()).title), Toast.LENGTH_SHORT).show();
 //            Toast.makeText(context, String.format("(%s) Quality link copied to Clipboard", ((TextView) view.findViewById(R.id.format_quality)).getText().toString()), Toast.LENGTH_SHORT).show();
 
             formats.get(getLayoutPosition()).download(context);

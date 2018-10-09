@@ -220,6 +220,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onBackPressed() {
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+            super.onBackPressed();
+        }
+        else {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         Log.d("INFO", "onCreateOptionsMenu called");
@@ -228,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void openSettingPage() {
-        Toast.makeText(getApplicationContext(), "Settings page coming soon!", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }

@@ -13,8 +13,8 @@
         android:entryValues="@array/formats"
         android:key="default_format"
         android:title="Default Format" />
-    <androidx.preference.EditTextPreference
-        android:defaultValue="Downloads"
+    <me.harshithgoka.youtubedl.Utils.StringPreference
+        android:defaultValue="/storage/emulated/0/Downloads/"
         android:key="download_folder"
         android:selectAllOnFocus="true"
         android:singleLine="false"
