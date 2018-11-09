@@ -137,7 +137,13 @@ public class Extractor {
                             if (m.find()){
                                 func_name = m.group(1) ;
                             } else {
-                                return null ;
+                                funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*([a-zA-Z0-9$]+)\\(") ;
+                                m = funcNamePattern.matcher(response) ;
+                                if (m.find()){
+                                    func_name = m.group(1) ;
+                                } else {
+                                    return null ;
+                                }
                             }
                         }
                     }
@@ -241,10 +247,10 @@ public class Extractor {
             String fmts = args.getString("url_encoded_fmt_stream_map") + "," + ytconfig.getJSONObject("args").getString("adaptive_fmts");
             String title = args.optString("title", "videoplayback");
             video_id = args.getString("video_id");
-            length = args.getString("length_seconds");
-            view_count = args.getString("view_count");
-            author = args.getString("author");
-            thumbnail_url = args.optString("thumbnail_url");
+            length = args.optString("length_seconds", "-1");
+            view_count = args.optString("view_count", "-1");
+            author = args.optString("author", "~");
+            thumbnail_url = args.optString("thumbnail_url", "");
 
             String[] fmts_enc = fmts.split(",");
             List<Format> formats = new ArrayList<>();
