@@ -102,7 +102,7 @@ public class Extractor {
     }
 
     public String extractSignatureFunction(String video_id, String player_url, String s) {
-        Pair playerID = new Pair<String, String >(player_url, signatureCacheId(s));
+        Pair<String, String> playerID = new Pair<>(player_url, signatureCacheId(s));
 
         if (!player_cache.containsKey(playerID)) {
             Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
@@ -176,7 +176,7 @@ public class Extractor {
         Arg arg = new Arg(s);
         try {
             Arg ret = jsi.callFunction(jsi.getSigFun(), new Arg[]{arg});
-            return ret.getString(VAL);
+            return ret.getString(Arg.VAL);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -309,7 +309,7 @@ public class Extractor {
                     url += "&ratebypass=yes";
                 }
 
-                f.url = url;
+                f.setUrl(url);
 
                 for (String param : params) {
                     if (param.equals("itag")) {
@@ -317,41 +317,26 @@ public class Extractor {
                     }
 
                     if (param.equals("type")) {
-                        f.type = query_pairs.get(param);
+                        f.setType(query_pairs.get(param));
                     }
 
                     if (param.equals("quality")) {
-                        f.quality = query_pairs.get(param);
+                        f.setQuality(query_pairs.get(param));
                     }
                 }
 
                 formats.add(f);
             }
 
-            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, new Timestamp(new Date().getTime()), formats, js_code, func_name);
-            return videoInfo;
+            return new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, new Timestamp(new Date().getTime()), formats);
 
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IOException | JSONException e) {
             try {
                 ret.put("message", e.toString());
             } catch (JSONException e1) {
                 e1.printStackTrace();
             }
             Log.d("Err", e.toString());
-        } catch (IOException e) {
-            try {
-                ret.put("message", e.toString());
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-            }
-            Log.d("Err", e.toString());
-        } catch (JSONException e) {
-            try {
-                ret.put("message", e.toString());
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-            }
-// e.printStackTrace();
         }
 
         return null;

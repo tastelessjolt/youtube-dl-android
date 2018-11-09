@@ -70,11 +70,11 @@ public class DownloadReceiver extends BroadcastReceiver {
                     URI uri = URI.create(cur.getString(uri_index));
                     File file = new File(uri);
                     Log.d("DownloadReceiver", file.getAbsolutePath());
-                    format.location = file.getAbsolutePath();
+                    format.setLocation(file.getAbsolutePath());
                     File destFile = new File(cur.getString(dest_index));
                     if(file.renameTo(destFile)){
                         Log.d("DownloadReceiver", "Move to final dest successful");
-                        format.location = destFile.getAbsolutePath();
+                        format.setLocation(destFile.getAbsolutePath());
                         Toast.makeText(context, String.format("YoutubeDL download complete to folder \"%s\"", destFile.getParentFile().getAbsolutePath()), Toast.LENGTH_SHORT).show();
                     }
                 }

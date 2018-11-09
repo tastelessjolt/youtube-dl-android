@@ -243,10 +243,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View v) {
                 Format f1 = null, f2 = null;
                 for (Format format: formats) {
-                    if (format.itag == 137) {
+                    if (format.getItag() == 137) {
                         f1 = format;
                     }
-                    if (format.itag == 140) {
+                    if (format.getItag() == 140) {
                         f2 = format;
                     }
                 }
@@ -409,9 +409,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int numRemoved = formats.size();
         formats.clear();
         formatAdapter.notifyItemRangeRemoved(0, numRemoved);
-        formats.addAll(videoInfo.formats);
-        formatAdapter.notifyItemRangeInserted(0, videoInfo.formats.size());
-        videoTitle.setText(videoInfo.title);
+        formats.addAll(videoInfo.getFormats());
+        formatAdapter.notifyItemRangeInserted(0, videoInfo.getFormats().size());
+        videoTitle.setText(videoInfo.getTitle());
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
@@ -450,21 +450,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             hideLoading();
             if (videoInfo != null) {
 
-                List<Format> formats = videoInfo.formats;
-
-                webview.evaluateJavascript(videoInfo.js_code, new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        Log.d("WebView1", value);
-                    }
-                });
-
-                webview.evaluateJavascript(videoInfo.js_code + "; " + videoInfo.func_name, new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        Log.d("WebView2", value);
-                    }
-                });
+                List<Format> formats = videoInfo.getFormats();
 
                 if (formats.size() > 0) {
                     int index;
@@ -479,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     loadVideoInfo(videoInfo);
 
-                    String finalurl = formats.get(0).url;
+                    String finalurl = formats.get(0).getUrl();
                     println(finalurl);
 
                     ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
@@ -487,7 +473,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     ClipData clip = ClipData.newRawUri("DownloadURL", Uri.parse(finalurl));
                     clipboard.setPrimaryClip(clip);
 
-                    Toast.makeText(getApplicationContext(), String.format("Best quality link (%s) copied to Clipboard", formats.get(0).quality), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), String.format("Best quality link (%s) copied to Clipboard", formats.get(0).getQuality()), Toast.LENGTH_SHORT).show();
                 }
                 else {
                     println("No. of formats: 0");
@@ -517,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void download (Format format) {
-        String extension = FormatUtils.getExtension(format);
+        String extension = FormatUtils.INSTANCE.getExtension(format);
         String filename = format.sanitizeFilename() + "." + extension;
         Log.d("Filename", filename);
         String final_download_directory = getDownloadDirectory(getApplicationContext());
@@ -546,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             uri = Uri.fromFile(files[which_index]);
         }
 
-        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(format.url));
+        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(format.getUrl()));
         req.setTitle(filename);
         req.setDescription(final_download_directory + File.separator + filename);
         if (uri != null) {
@@ -567,6 +553,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editor.apply();
 
         Toast.makeText(getApplicationContext(), String.format("Your media file now downloading to \"%s\" folder. Check the notification area.", final_download_directory), Toast.LENGTH_SHORT).show();
-        format.dowmloadState = Format.DownloadState.DOWNLOADING;
+        format.setDowmloadState(Format.DownloadState.DOWNLOADING);
     }
 }

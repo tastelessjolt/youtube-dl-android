@@ -106,7 +106,7 @@ public class JSInterpreter {
 
         String _code = m.group(2);
 
-        return new Fun(funcname, _args, _code);
+        return new Fun(funcname, _args.clone(), _code);
     }
     
     
@@ -117,16 +117,16 @@ public class JSInterpreter {
 //        }
 
         JSONObject local_vars = new JSONObject();
-        for (int i = 0; i < func.argnames.length; i++) {
-            local_vars.put(func.argnames[i], args[i]);
+        for (int i = 0; i < func.getArgnames().length; i++) {
+            local_vars.put(func.getArgnames()[i], args[i]);
         }
 
         Arg res = new Arg();
-        String[] split = func.code.split(";");
+        String[] split = func.getCode().split(";");
         for (String stmt : split) {
             Pair<Arg, Boolean> ret = interpretStatement(stmt, local_vars, 100);
             res = ret.first;
-            Log.d(stmt, res.getString(VAL));
+            Log.d(stmt, res.getString(Arg.VAL));
             if (ret.second) {
                 break;
             }
@@ -222,10 +222,10 @@ public class JSInterpreter {
                 Arg lvar = (Arg) local_vars.getJSONObject(m.group(1));
                 Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion);
 
-                int index = idx.getInt(VAL);
-                Arg curr = (Arg) lvar.getJSONArray(VAL).get(index);
+                int index = idx.getInt(Arg.VAL);
+                Arg curr = (Arg) lvar.getJSONArray(Arg.VAL).get(index);
                 Arg val = opFunc(op, curr, right_val);
-                lvar.getJSONArray(VAL).put(index, val);
+                lvar.getJSONArray(Arg.VAL).put(index, val);
                 return val;
             }
             else {
@@ -270,8 +270,8 @@ public class JSInterpreter {
             if (m.group(1) != null && m.group(2) != null) {
                 Arg val = (Arg) local_vars.get(m.group(1));
                 Arg idx = interpretExpression(m.group(2), local_vars, allowRecursion - 1);
-                int index = idx.getInt(VAL);
-                return (Arg) val.getJSONArray(VAL).get(index);
+                int index = idx.getInt(Arg.VAL);
+                return (Arg) val.getJSONArray(Arg.VAL).get(index);
             }
         }
 
@@ -281,7 +281,7 @@ public class JSInterpreter {
         if (m.find() && m.start() == 0) {
             if (m.group(1) != null) {
                 String variable = m.group(1);
-                String member = FormatUtils.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
+                String member = FormatUtils.INSTANCE.removeQuotes((m.group(2) != null) ? m.group(2) : m.group(3));
                 String arg_str = m.group(4);
 
                 JSONObject obj;
@@ -299,10 +299,10 @@ public class JSInterpreter {
                 if (m.group(4) == null) {
                     if (member.equals("length")){
                         try {
-                            return new Arg(obj.getJSONArray(VAL).length());
+                            return new Arg(obj.getJSONArray(Arg.VAL).length());
                         }
                         catch (JSONException e) {
-                            return new Arg(obj.getString(VAL).length());
+                            return new Arg(obj.getString(Arg.VAL).length());
                         }
                     }
 
@@ -326,29 +326,29 @@ public class JSInterpreter {
 
                 if (member.equals("split")) {
                     assert argvals.length == 1;
-                    assert argvals[0].getString(VAL).equals("\"\"");
+                    assert argvals[0].getString(Arg.VAL).equals("\"\"");
 
                     JSONArray temp = new JSONArray();
-                    String target = obj.getString(VAL);
+                    String target = obj.getString(Arg.VAL);
                     for (char c: target.toCharArray()) {
                         temp.put(new Arg(c + ""));
                     }
                     Arg ret = new Arg();
-                    ret.put(VAL, temp);
+                    ret.put(Arg.VAL, temp);
                     return ret;
                 }
 
                 if (member.equals("join")) {
                     assert argvals.length == 1;
                     try {
-                        JSONArray jsonArray = obj.getJSONArray(VAL);
+                        JSONArray jsonArray = obj.getJSONArray(Arg.VAL);
 
-                        String joindelim = argvals[0].getString(VAL);
+                        String joindelim = argvals[0].getString(Arg.VAL);
 
                         StringBuilder out = new StringBuilder();
 
                         for (int i = 0; i < jsonArray.length(); i++) {
-                            out.append(jsonArray.getJSONObject(i).get(VAL));
+                            out.append(jsonArray.getJSONObject(i).get(Arg.VAL));
                             if (i != jsonArray.length() - 1) {
                                 out.append(joindelim);
                             }
@@ -357,9 +357,9 @@ public class JSInterpreter {
                         return new Arg(out.toString());
                     }
                     catch (Exception e) {
-                        String s = obj.getString(VAL);
+                        String s = obj.getString(Arg.VAL);
 
-                        String joindelim = argvals[0].getString(VAL);
+                        String joindelim = argvals[0].getString(Arg.VAL);
 
                         StringBuilder out = new StringBuilder();
 
@@ -377,12 +377,12 @@ public class JSInterpreter {
                 if (member.equals("reverse")) {
                     assert argvals.length == 0;
 
-                    JSONArray objArray = obj.getJSONArray(VAL);
+                    JSONArray objArray = obj.getJSONArray(Arg.VAL);
                     JSONArray revArray = new JSONArray();
                     for (int i = objArray.length() - 1; i >= 0; i--) {
                         revArray.put(objArray.get(i));
                     }
-                    obj.put(VAL, revArray);
+                    obj.put(Arg.VAL, revArray);
 
                     return (Arg) obj;
                 }
@@ -390,13 +390,13 @@ public class JSInterpreter {
                 if (member.equals("slice")) {
                     assert argvals.length == 1;
                     try {
-                        int start = argvals[0].getInt(VAL);
-                        String s = obj.getString(VAL);
+                        int start = argvals[0].getInt(Arg.VAL);
+                        String s = obj.getString(Arg.VAL);
                         return new Arg(s.substring(start));
                     }
                     catch (Exception e) {
-                        int start = argvals[0].getInt(VAL);
-                        JSONArray array = obj.getJSONArray(VAL);
+                        int start = argvals[0].getInt(Arg.VAL);
+                        JSONArray array = obj.getJSONArray(Arg.VAL);
                         JSONArray retArray = new JSONArray();
                         for (int i = start; i < array.length(); i++) {
                             retArray.put(array.get(i));
@@ -406,11 +406,11 @@ public class JSInterpreter {
                 }
 
                 if (member.equals("splice")) {
-                    assert obj.get(VAL).getClass().equals(JSONArray.class);
-                    int index = argvals[0].getInt(VAL);
-                    int howMany = argvals[1].getInt(VAL);
+                    assert obj.get(Arg.VAL).getClass().equals(JSONArray.class);
+                    int index = argvals[0].getInt(Arg.VAL);
+                    int howMany = argvals[1].getInt(Arg.VAL);
 
-                    JSONArray jsonArray = obj.getJSONArray(VAL);
+                    JSONArray jsonArray = obj.getJSONArray(Arg.VAL);
                     JSONArray ret = new JSONArray();
                     for (int i = 0; i < Math.min(index + howMany, jsonArray.length()); i++) {
                         ret.put(jsonArray.remove(index));
@@ -488,7 +488,7 @@ public class JSInterpreter {
 
         if (op.equals("|=") | op.equals("|")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) | right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) | right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -496,7 +496,7 @@ public class JSInterpreter {
         }
         else if (op.equals("^=") | op.equals("^")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) ^ right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) ^ right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -504,7 +504,7 @@ public class JSInterpreter {
         }
         else if (op.equals("&=") | op.equals("&")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) & right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) & right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -512,7 +512,7 @@ public class JSInterpreter {
         }
         else if (op.equals(">>=") || op.equals(">>")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) >> right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) >> right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -520,7 +520,7 @@ public class JSInterpreter {
         }
         else if (op.equals("<<=") || op.equals("<<")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) << right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) << right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -528,7 +528,7 @@ public class JSInterpreter {
         }
         else if (op.equals("-=") || op.equals("-")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) - right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) - right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -536,7 +536,7 @@ public class JSInterpreter {
         }
         else if (op.equals("+=") || op.equals("+")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) + right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) + right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -544,7 +544,7 @@ public class JSInterpreter {
         }
         else if (op.equals("%=") || op.equals("%")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) % right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) % right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -552,7 +552,7 @@ public class JSInterpreter {
         }
         else if (op.equals("/=") || op.equals("/")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) / right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) / right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -560,7 +560,7 @@ public class JSInterpreter {
         }
         else if (op.equals("*=") || op.equals("*")) {
             try {
-                ret.put(VAL, cur.getInt(VAL) * right_val.getInt(VAL));
+                ret.put(Arg.VAL, cur.getInt(Arg.VAL) * right_val.getInt(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -568,7 +568,7 @@ public class JSInterpreter {
         }
         else if (op.equals("=")) {
             try {
-                ret.put(VAL, right_val.get(VAL));
+                ret.put(Arg.VAL, right_val.get(Arg.VAL));
                 return ret;
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -621,7 +621,7 @@ public class JSInterpreter {
             while (m1.find()) {
                 String[] args = m1.group(2).split(",");
                 try {
-                    obj.put(FormatUtils.removeQuotes(m1.group(1)), new Fun(m1.group(1), args, m1.group(3)));
+                    obj.put(FormatUtils.INSTANCE.removeQuotes(m1.group(1)), new Fun(m1.group(1), args.clone(), m1.group(3)));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
