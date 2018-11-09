@@ -1,6 +1,7 @@
 package me.harshithgoka.youtubedl.Activities;
 
 import android.Manifest;
+import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -16,15 +17,23 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.LongSparseArray;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.webkit.ValueCallback;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,17 +44,23 @@ import com.google.android.material.button.MaterialButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import androidx.core.util.Pair;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import me.harshithgoka.youtubedl.YoutubeDL.Extractor;
 import me.harshithgoka.youtubedl.YoutubeDL.Format;
 import me.harshithgoka.youtubedl.Adapters.FormatAdapter;
 import me.harshithgoka.youtubedl.R;
 import me.harshithgoka.youtubedl.CustomUI.RecyclerViewEmptySupport;
+import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
 import me.harshithgoka.youtubedl.YoutubeDL.VideoInfo;
 import me.harshithgoka.youtubedl.Adapters.VideoInfoAdapter;
 
@@ -77,10 +92,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     List<ProgressBar> progressBars;
 
     SharedPreferences mPrefs;
+    SharedPreferences sharedPreferences;
     ArrayList<VideoInfo> history;
 
     TextView videoTitle;
 
+    WebView webview;
+
+    Gson gson;
+    HashMap<Long, Format> inProgressDownloads;
+    ArrayList<Pair<Format, Format>> mixingDownloads;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -112,6 +133,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 
         }
+
+        webview = (WebView) findViewById(R.id.web_view);
+
+        WebSettings webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+
+        webview.loadUrl("http://google.com/");
+
 
         String appLogoText = "<font color=#c62828>Y</font>ou<font color=#e15827>T</font>ube<font color=#33745f>DL</font>";
         TextView appLogo = findViewById(R.id.app_logo);
@@ -165,20 +194,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         videoTitle = findViewById(R.id.video_title);
         // Formats
         formatsRecyclerView = findViewById(R.id.recycler_view);
-        formatAdapter = new FormatAdapter(getApplicationContext(), formats);
+        formatAdapter = new FormatAdapter(getApplicationContext(), formats, this);
         formatsRecyclerView.setAdapter(formatAdapter);
         formatLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
         formatsRecyclerView.setLayoutManager(formatLinearLayoutManager);
 
         // History Get Content
         mPrefs = getPreferences(MODE_PRIVATE);
-        Gson gson = new Gson();
+        gson = new Gson();
         String json = mPrefs.getString(HISTORY, "");
 
         Type type = new TypeToken< List < VideoInfo >>() {}.getType();
         history = gson.fromJson(json, type);
         if (history == null) {
             history = new ArrayList<>();
+        }
+
+        sharedPreferences = getSharedPreferences("download_history", Context.MODE_PRIVATE);
+
+        json = sharedPreferences.getString("in_progress", "");
+
+        type = new TypeToken<HashMap<Long, Format>>() {}.getType();
+        inProgressDownloads = gson.fromJson(json, type);
+        if (inProgressDownloads == null) {
+            inProgressDownloads = new HashMap<Long, Format>();
+        }
+
+        json = sharedPreferences.getString("mixing_downloads", "");
+        type = new TypeToken<ArrayList<Pair<Format, Format>>>() {}.getType();
+        mixingDownloads = gson.fromJson(json, type);
+        if (mixingDownloads == null) {
+            mixingDownloads = new ArrayList<>();
         }
 
         // History
@@ -188,6 +234,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viRecyclerView.setAdapter(viAdapter);
         viLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
         viRecyclerView.setLayoutManager(viLinearLayoutManager);
+
+        // Best Download
+
+        MaterialButton btn = findViewById(R.id.best_download);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Format f1 = null, f2 = null;
+                for (Format format: formats) {
+                    if (format.itag == 137) {
+                        f1 = format;
+                    }
+                    if (format.itag == 140) {
+                        f2 = format;
+                    }
+                }
+                Pair<Format, Format> p = new Pair<>(f1, f2);
+
+                if (f1 == null || f2 == null) {
+                    return;
+                }
+
+                download(f1);
+                download(f2);
+
+                mixingDownloads.add(p);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("mixing_downloads", gson.toJson(mixingDownloads));
+                editor.apply();
+            }
+        });
 
         // ATTENTION: This was auto-generated to handle app links.
         Intent appLinkIntent = getIntent();
@@ -207,6 +284,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             urlEdit.setText(url);
             startDownload(url);
         }
+
+
     }
 
     @Override
@@ -214,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
         SharedPreferences.Editor editor = mPrefs.edit();
 
-        String connectionsJSONString = new Gson().toJson(history);
+        String connectionsJSONString = gson.toJson(history);
         editor.putString(HISTORY, connectionsJSONString);
         editor.apply();
     }
@@ -372,6 +451,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (videoInfo != null) {
 
                 List<Format> formats = videoInfo.formats;
+
+                webview.evaluateJavascript(videoInfo.js_code, new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        Log.d("WebView1", value);
+                    }
+                });
+
+                webview.evaluateJavascript(videoInfo.js_code + "; " + videoInfo.func_name, new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        Log.d("WebView2", value);
+                    }
+                });
+
                 if (formats.size() > 0) {
                     int index;
                     if ((index = history.indexOf(videoInfo)) != -1) {
@@ -405,4 +499,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
+
+
+    public String getDownloadDirectory(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getString("download_folder", Environment.DIRECTORY_DOWNLOADS);
+    }
+
+    public String greatestCommonPrefix(String a, String b) {
+        int minLength = Math.min(a.length(), b.length());
+        for (int i = 0; i < minLength; i++) {
+            if (a.charAt(i) != b.charAt(i)) {
+                return a.substring(0, i);
+            }
+        }
+        return a.substring(0, minLength);
+    }
+
+    public void download (Format format) {
+        String extension = FormatUtils.getExtension(format);
+        String filename = format.sanitizeFilename() + "." + extension;
+        Log.d("Filename", filename);
+        String final_download_directory = getDownloadDirectory(getApplicationContext());
+
+        DownloadManager dm =null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            dm = getSystemService(DownloadManager.class);
+        }else{
+            dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        }
+
+        // Temporary Download folder
+        File[] files = ContextCompat.getExternalFilesDirs(getApplicationContext(), Environment.DIRECTORY_MOVIES);
+        int maximum_length = 0;
+        int which_index = -1;
+        String s;
+        for (int i = 0; i < files.length; i++) {
+            s = greatestCommonPrefix(final_download_directory, files[i].getAbsolutePath());
+            if (s.length() > maximum_length) {
+                maximum_length = s.length();
+                which_index = i;
+            }
+        }
+        Uri uri = null;
+        if (which_index > -1) {
+            uri = Uri.fromFile(files[which_index]);
+        }
+
+        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(format.url));
+        req.setTitle(filename);
+        req.setDescription(final_download_directory + File.separator + filename);
+        if (uri != null) {
+            req.setDestinationUri(uri);
+        }
+        else {
+            req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, File.separator + filename);
+        }
+        req.allowScanningByMediaScanner();
+        req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+        long download_id = dm.enqueue(req);
+
+        inProgressDownloads.put(download_id, format);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("in_progress", gson.toJson(inProgressDownloads));
+        editor.apply();
+
+        Toast.makeText(getApplicationContext(), String.format("Your media file now downloading to \"%s\" folder. Check the notification area.", final_download_directory), Toast.LENGTH_SHORT).show();
+        format.dowmloadState = Format.DownloadState.DOWNLOADING;
+    }
 }

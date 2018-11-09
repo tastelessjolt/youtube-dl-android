@@ -15,8 +15,11 @@ public class VideoInfo {
     public List<Format> formats;
     public Timestamp last_updated;
 
+    public String js_code;
+    public String func_name;
 
-    VideoInfo(String id, String title, String length, String view_count, String author, String thumbnail_url, Timestamp last_updated, List<Format> formats) {
+
+    VideoInfo(String id, String title, String length, String view_count, String author, String thumbnail_url, Timestamp last_updated, List<Format> formats, String js_code, String func_name) {
         this.video_id = id;
         this.title = title;
         this.author = author;

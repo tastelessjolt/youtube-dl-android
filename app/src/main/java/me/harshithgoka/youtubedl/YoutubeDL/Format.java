@@ -12,6 +12,8 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +27,12 @@ import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
  */
 
 public class Format implements Parcelable {
+    public enum DownloadState {
+        NOT_DOWNLOADED,
+        DOWNLOADING,
+        DOWNLOADED,
+    }
+
     public String title;
     public int itag;
     public String url;
@@ -35,6 +43,9 @@ public class Format implements Parcelable {
     public String content;
 
     public boolean audio, video;
+
+    public DownloadState dowmloadState;
+    public String location;
 
     public Format (String title) {
         this.title = title;
@@ -49,6 +60,8 @@ public class Format implements Parcelable {
         extension = FormatUtils.getExtension(this);
         content = FormatUtils.getTitle(this);
         description = FormatUtils.getDescription(this);
+
+        dowmloadState = DownloadState.NOT_DOWNLOADED;
     }
 
     public void setFormat(Format fmt) {
@@ -63,6 +76,8 @@ public class Format implements Parcelable {
 
         audio = fmt.audio;
         video = fmt.video;
+
+        dowmloadState = fmt.dowmloadState;
     }
 
     public static final Creator<Format> CREATOR = new Creator<Format>() {
@@ -100,76 +115,5 @@ public class Format implements Parcelable {
 
     public String sanitizeFilename() {
         return title.replaceAll("/", "|");
-    }
-
-    public String getDownloadDirectory(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPreferences.getString("download_folder", Environment.DIRECTORY_DOWNLOADS);
-    }
-
-    public String greatestCommonPrefix(String a, String b) {
-        int minLength = Math.min(a.length(), b.length());
-        for (int i = 0; i < minLength; i++) {
-            if (a.charAt(i) != b.charAt(i)) {
-                return a.substring(0, i);
-            }
-        }
-        return a.substring(0, minLength);
-    }
-
-    public void download (Context context) {
-        String extension = FormatUtils.getExtension(this);
-        String filename = sanitizeFilename() + "." + extension;
-        Log.d("Filename", filename);
-        String final_download_directory = getDownloadDirectory(context);
-
-        DownloadManager dm =null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            dm = context.getSystemService(DownloadManager.class);
-        }else{
-            dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        }
-
-        SharedPreferences sharedPreferences = context.getSharedPreferences("download_history", Context.MODE_PRIVATE);
-        Set<String> inProgressDownloads = sharedPreferences.getStringSet("in_progress", new HashSet<String>());
-
-        // Temporary Download folder
-        File[] files = ContextCompat.getExternalFilesDirs(context, Environment.DIRECTORY_MOVIES);
-        int maximum_length = 0;
-        int which_index = -1;
-        String s;
-        for (int i = 0; i < files.length; i++) {
-            s = greatestCommonPrefix(final_download_directory, files[i].getAbsolutePath());
-            if (s.length() > maximum_length) {
-                maximum_length = s.length();
-                which_index = i;
-            }
-        }
-        Uri uri = null;
-        if (which_index > -1) {
-            uri = Uri.fromFile(files[which_index]);
-        }
-
-        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
-        req.setTitle(filename);
-        req.setDescription(final_download_directory + File.separator + filename);
-        if (uri != null) {
-            req.setDestinationUri(uri);
-        }
-        else {
-            req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, File.separator + filename);
-        }
-        req.allowScanningByMediaScanner();
-        req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-
-        long download_id = dm.enqueue(req);
-
-        inProgressDownloads.add("" + download_id);
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putStringSet("in_progress", inProgressDownloads);
-        editor.apply();
-
-        Toast.makeText(context, String.format("Your media file now downloading to \"%s\" folder. Check the notification area.", final_download_directory), Toast.LENGTH_SHORT).show();
     }
 }

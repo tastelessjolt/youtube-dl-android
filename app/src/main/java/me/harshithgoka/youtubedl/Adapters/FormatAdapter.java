@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import androidx.recyclerview.widget.RecyclerView;
+import me.harshithgoka.youtubedl.Activities.MainActivity;
 import me.harshithgoka.youtubedl.R;
 import me.harshithgoka.youtubedl.YoutubeDL.Utils.FormatUtils;
 import me.harshithgoka.youtubedl.YoutubeDL.Format;
@@ -26,6 +27,7 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
 
     List<Format> formats;
     Context context;
+    MainActivity mainActivity;
 
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView quality, itag, ext;
@@ -55,13 +57,15 @@ public class FormatAdapter extends RecyclerView.Adapter<FormatAdapter.MyViewHold
 //            Toast.makeText(context, String.format("Your video \"%s\" is now downloading. Check the notification area.", formats.get(getLayoutPosition()).title), Toast.LENGTH_SHORT).show();
 //            Toast.makeText(context, String.format("(%s) Quality link copied to Clipboard", ((TextView) view.findViewById(R.id.format_quality)).getText().toString()), Toast.LENGTH_SHORT).show();
 
-            formats.get(getLayoutPosition()).download(context);
+            mainActivity.download(formats.get(getLayoutPosition()));
+//            formats.get(getLayoutPosition()).download(context);
         }
     }
 
-    public FormatAdapter( Context context, List<Format> formats ) {
+    public FormatAdapter( Context context, List<Format> formats, MainActivity activity ) {
         this.formats = formats;
         this.context = context;
+        this.mainActivity = activity;
     }
 
     @Override

@@ -70,6 +70,9 @@ public class Extractor {
     private HashMap<Pair<String, String>, JSInterpreter> player_cache;
     private HttpGetter httpGetter;
 
+    String js_code;
+    String func_name;
+
 
     public Extractor() {
         player_cache = new HashMap<>();
@@ -81,8 +84,10 @@ public class Extractor {
     public JSInterpreter parseSigJs(String response) {
         // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
         //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
-
         JSInterpreter jsInterpreter = new JSInterpreter(response);
+        if(jsInterpreter != null) {
+            js_code = response;
+        }
         return jsInterpreter;
     }
 
@@ -152,6 +157,7 @@ public class Extractor {
 
 
                 if (!TextUtils.isEmpty(func_name)){
+                    this.func_name = func_name;
                     Fun fun = jsInterpreter.extractFunction(func_name);
                     jsInterpreter.setSigFun(fun);
 
@@ -203,7 +209,7 @@ public class Extractor {
 
         Pair<String, String> player_id = new Pair<> (player_url, getSignatureCacheId(s));
 
-
+        
         String sig = extractSignatureFunction(video_id, player_url, s);
 
         Log.d(TAG + "enc", s);
@@ -244,7 +250,7 @@ public class Extractor {
             ret.put("status", true);
 
             JSONObject args = ytconfig.getJSONObject("args");
-            String fmts = args.getString("url_encoded_fmt_stream_map") + "," + ytconfig.getJSONObject("args").getString("adaptive_fmts");
+            String fmts = args.getString("url_encoded_fmt_stream_map") + "," + args.getString("adaptive_fmts");
             String title = args.optString("title", "videoplayback");
             video_id = args.getString("video_id");
             length = args.optString("length_seconds", "-1");
@@ -322,7 +328,7 @@ public class Extractor {
                 formats.add(f);
             }
 
-            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, new Timestamp(new Date().getTime()), formats);
+            VideoInfo videoInfo = new VideoInfo(video_id, title, length, view_count, author, thumbnail_url, new Timestamp(new Date().getTime()), formats, js_code, func_name);
             return videoInfo;
 
         } catch (IllegalStateException e) {
