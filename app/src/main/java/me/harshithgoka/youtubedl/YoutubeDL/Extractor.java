@@ -287,16 +287,20 @@ public class Extractor {
                     m.find();
                     String player_url = m.group(1);
                     player_url = new JSONObject("{ \"str\" :" + player_url + "}").getString("str");
+                    // < Only for verbose logging >
+//                    String player_version = "unknown";
+//                    String player_desc = "unknown";
+//                    Pattern playerType = Pattern.compile("(html5player-([^/]+?)(?:/html5player(?:-new)?)?\\.js)|((?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\\.js)");
+//                    m = playerType.matcher(player_url);
+//                    if (!m.find()) {
+//                        Log.d("ERR", "Couldn't find Player URL");
+//                        Log.d("ERR", response);
+//                    }
+//                    else {
+//                        player_version = m.group();
+//                        player_desc = "html5 player " + player_version;
+//                    }
 
-                    Pattern playerType = Pattern.compile("(html5player-([^/]+?)(?:/html5player(?:-new)?)?\\.js)|((?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\\.js)");
-                    m = playerType.matcher(player_url);
-                    if (!m.find()) {
-                        Log.d("ERR", "Couldn't find Player URL");
-                        Log.d("ERR", response);
-                    }
-
-                    String player_version = m.group();
-                    String player_desc = "html5 player " + player_version;
                     String encrypted_signature = query_pairs.get("s");
                     String videoID = getID(you_url);
 

@@ -7,8 +7,8 @@ android {
         applicationId "me.harshithgoka.youtubedl"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 13
+        versionName "0.13"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -36,6 +36,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
+    implementation 'com.github.codekidX:storage-chooser:2.0.4.2'
 
     implementation 'com.github.tony19:named-regexp:0.2.5'
     implementation 'com.google.code.gson:gson:2.8.5'
@@ -43,7 +44,6 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 
-    implementation 'com.github.codekidX:storage-chooser:2.0.4.2'
     implementation 'com.googlecode.mp4parser:isoparser:1.1.21'
 
 }

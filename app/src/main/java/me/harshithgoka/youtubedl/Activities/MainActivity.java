@@ -327,7 +327,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (id) {
             case R.id.action_settings:
-                openSettingPage();
+                Toast.makeText(getApplicationContext(), "Coming soon", Toast.LENGTH_LONG).show();
+//                openSettingPage();
                 return true;
             default:
                 break;

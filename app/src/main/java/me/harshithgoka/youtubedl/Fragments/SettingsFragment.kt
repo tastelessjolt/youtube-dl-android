@@ -11,8 +11,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 
-import com.codekidlabs.storagechooser.StorageChooser
-import com.codekidlabs.storagechooser.utils.DiskUtil
+//import com.codekidlabs.storagechooser.StorageChooser
+//import com.codekidlabs.storagechooser.utils.DiskUtil
 
 import androidx.core.content.res.ResourcesCompat
 import androidx.preference.EditTextPreference
@@ -78,32 +78,32 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     override fun onPreferenceClick(preference: Preference): Boolean {
         if (preference.key == downloadFolderPref!!.key) {
-            val theme = StorageChooser.Theme(context)
-
-            val myScheme = theme.defaultScheme
-            myScheme[StorageChooser.Theme.OVERVIEW_HEADER_INDEX] = ResourcesCompat.getColor(resources, R.color.colorAccent, context!!.theme)
-            myScheme[StorageChooser.Theme.SEC_FOLDER_TINT_INDEX] = ResourcesCompat.getColor(resources, R.color.colorPrimary, context!!.theme)
-            myScheme[StorageChooser.Theme.SEC_ADDRESS_BAR_BG] = ResourcesCompat.getColor(resources, R.color.colorAccent, context!!.theme)
-            theme.scheme = myScheme
-
-            val chooser = StorageChooser.Builder()
-                    .allowCustomPath(true)
-                    .setType(StorageChooser.DIRECTORY_CHOOSER)
-                    .withActivity(activity)
-                    .withFragmentManager(activity!!.fragmentManager)
-                    .withMemoryBar(true)
-                    .setTheme(theme)
-                    .build()
-
-            chooser.show()
-
-            // get path that the user has chosen
-            chooser.setOnSelectListener { path ->
-                Log.d("SELECTED_PATH", path)
-                downloadFolderPref!!.text = path
-                downloadFolderPref!!.summary = path
-            }
-            return true
+//            val theme = StorageChooser.Theme(context)
+//
+//            val myScheme = theme.defaultScheme
+//            myScheme[StorageChooser.Theme.OVERVIEW_HEADER_INDEX] = ResourcesCompat.getColor(resources, R.color.colorAccent, context!!.theme)
+//            myScheme[StorageChooser.Theme.SEC_FOLDER_TINT_INDEX] = ResourcesCompat.getColor(resources, R.color.colorPrimary, context!!.theme)
+//            myScheme[StorageChooser.Theme.SEC_ADDRESS_BAR_BG] = ResourcesCompat.getColor(resources, R.color.colorAccent, context!!.theme)
+//            theme.scheme = myScheme
+//
+//            val chooser = StorageChooser.Builder()
+//                    .allowCustomPath(true)
+//                    .setType(StorageChooser.DIRECTORY_CHOOSER)
+//                    .withActivity(activity)
+//                    .withFragmentManager(activity!!.fragmentManager)
+//                    .withMemoryBar(true)
+//                    .setTheme(theme)
+//                    .build()
+//
+//            chooser.show()
+//
+//            // get path that the user has chosen
+//            chooser.setOnSelectListener { path ->
+//                Log.d("SELECTED_PATH", path)
+//                downloadFolderPref!!.text = path
+//                downloadFolderPref!!.summary = path
+//            }
+//            return true
         }
         return false
     }
