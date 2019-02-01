@@ -87,6 +87,7 @@
             android:layout_marginBottom="8dp"
             android:text="Best"
             android:textAllCaps="false"
+            android:visibility="gone"
             android:backgroundTint="@color/colorPrimaryDark"
             app:layout_constraintBottom_toBottomOf="@+id/formats_heading"
             app:layout_constraintEnd_toEndOf="parent"

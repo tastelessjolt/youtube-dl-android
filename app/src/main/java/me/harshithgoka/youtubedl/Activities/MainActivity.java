@@ -32,7 +32,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -96,9 +95,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<VideoInfo> history;
 
     TextView videoTitle;
-
-    WebView webview;
-
     Gson gson;
     HashMap<Long, Format> inProgressDownloads;
     ArrayList<Pair<Format, Format>> mixingDownloads;
@@ -133,14 +129,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 
         }
-
-        webview = (WebView) findViewById(R.id.web_view);
-
-        WebSettings webSettings = webview.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-
-        webview.loadUrl("http://google.com/");
-
 
         String appLogoText = "<font color=#c62828>Y</font>ou<font color=#e15827>T</font>ube<font color=#33745f>DL</font>";
         TextView appLogo = findViewById(R.id.app_logo);

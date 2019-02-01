@@ -82,8 +82,6 @@ public class Extractor {
 
 
     public JSInterpreter parseSigJs(String response) {
-        // (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-        //        r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
         JSInterpreter jsInterpreter = new JSInterpreter(response);
         if(jsInterpreter != null) {
             js_code = response;
@@ -105,7 +103,7 @@ public class Extractor {
         Pair<String, String> playerID = new Pair<>(player_url, signatureCacheId(s));
 
         if (!player_cache.containsKey(playerID)) {
-            Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
+            Pattern playerUrl = Pattern.compile(".*?-(?<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\\.(?<ext>[a-z]+)$");
 
             Matcher matcher = playerUrl.matcher(player_url);
             if (!matcher.find())
@@ -132,12 +130,12 @@ public class Extractor {
                     if (m.find())
                         func_name = m.group(2);
                     else {
-                        funcNamePattern = Pattern.compile("yt\\.akamaized\\.net/\\)\\s*\\|\\|\\s*.*?\\s*c\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*([a-zA-Z0-9$]+)\\(");
+                        funcNamePattern = Pattern.compile("yt\\.akamaized\\.net/\\)\\s*\\|\\|\\s*.*?\\s*c\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*(?:encodeURIComponent\\s*\\()?(?<sig>[a-zA-Z0-9$]+)\\(");
                         m = funcNamePattern.matcher(response) ;
                         if (m.find()){
                             func_name = m.group(1) ;
                         } else {
-                            funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*([a-zA-Z0-9$]+)\\(") ;
+                            funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*(?:encodeURIComponent\\s*\\()?\\s*(?<sig>[a-zA-Z0-9$]+)\\(") ;
                             m = funcNamePattern.matcher(response) ;
                             if (m.find()){
                                 func_name = m.group(1) ;
