@@ -118,43 +118,29 @@ public class Extractor {
                 if (jsInterpreter == null)
                     return null;
 
-                Pattern funcNamePattern = Pattern.compile("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(");
-                Matcher m = funcNamePattern.matcher(response);
+                List<Pair<String, Integer>> funcPatterns = new ArrayList<>();
+                funcPatterns.add(new Pair<>("\\b[cs]\\s*&&\\s*[adf]\\.set\\([^,]+\\s*,\\s*encodeURIComponent\\s*\\(\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 2));
+                funcPatterns.add(new Pair<>("\\b[a-zA-Z0-9]+\\s*&&\\s*[a-zA-Z0-9]+\\.set\\([^,]+\\s*,\\s*encodeURIComponent\\s*\\(\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 2));
+                funcPatterns.add(new Pair<>("(?<sig>[a-zA-Z0-9$]+)\\s*=\\s*function\\(\\s*a\\s*\\)\\s*{\\s*a\\s*=\\s*a\\.split\\(\\s*\"\"\\s*\\)", 2));
 
-                String func_name;
-                if (m.find())
-                    func_name = m.group(2);
-                else {
-                    funcNamePattern = Pattern.compile("\\.sig\\|\\|(?<sig>[a-zA-Z0-9$]+)\\(");
-                    m = funcNamePattern.matcher(response);
-                    if (m.find())
-                        func_name = m.group(2);
-                    else {
-                        funcNamePattern = Pattern.compile("yt\\.akamaized\\.net/\\)\\s*\\|\\|\\s*.*?\\s*c\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*(?:encodeURIComponent\\s*\\()?(?<sig>[a-zA-Z0-9$]+)\\(");
-                        m = funcNamePattern.matcher(response) ;
-                        if (m.find()){
-                            func_name = m.group(1) ;
-                        } else {
-                            funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*(?:encodeURIComponent\\s*\\()?\\s*(?<sig>[a-zA-Z0-9$]+)\\(") ;
-                            m = funcNamePattern.matcher(response) ;
-                            if (m.find()){
-                                func_name = m.group(1) ;
-                            } else {
-                                funcNamePattern = Pattern.compile("\\bc\\s*&&\\s*d\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*([a-zA-Z0-9$]+)\\(") ;
-                                m = funcNamePattern.matcher(response) ;
-                                if (m.find()){
-                                    func_name = m.group(1) ;
-                                } else {
-                                    return null ;
-                                }
-                            }
-                        }
-                    }
+                // Obsolete patterns
+                funcPatterns.add(new Pair<>("([\"\\'])signature\\1\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 2));
+                funcPatterns.add(new Pair<>("\\.sig\\|\\|(?<sig>[a-zA-Z0-9$]+)\\(", 2));
+                funcPatterns.add(new Pair<>("yt\\.akamaized\\.net/\\)\\s*\\|\\|\\s*.*?\\s*[cs]\\s*&&\\s*[adf]\\.set\\([^,]+\\s*,\\s*(?:encodeURIComponent\\s*\\()?\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 1));
+                funcPatterns.add(new Pair<>("\\b[cs]\\s*&&\\s*[adf]\\.set\\([^,]+\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 1));
+                funcPatterns.add(new Pair<>("\\b[a-zA-Z0-9]+\\s*&&\\s*[a-zA-Z0-9]+\\.set\\([^,]+\\s*,\\s*(?<sig>[a-zA-Z0-9$]+)\\(", 1));
+                funcPatterns.add(new Pair<>("\\bc\\s*&&\\s*a\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*(?P<sig>[a-zA-Z0-9$]+)\\(", 1));
+                funcPatterns.add(new Pair<>("\\bc\\s*&&\\s*[a-zA-Z0-9]+\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*(?P<sig>[a-zA-Z0-9$]+)\\(", 1));
+                funcPatterns.add(new Pair<>("\\bc\\s*&&\\s*[a-zA-Z0-9]+\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*(?P<sig>[a-zA-Z0-9$]+)\\(", 1));
+
+                func_name = findFuncName(funcPatterns, response);
+                if (func_name == null) {
+                    return null;
                 }
 
 
 
-                if (!TextUtils.isEmpty(func_name)){
+                if (func_name.isEmpty()){
                     this.func_name = func_name;
                     Fun fun = jsInterpreter.extractFunction(func_name);
                     jsInterpreter.setSigFun(fun);
@@ -164,7 +150,7 @@ public class Extractor {
                     return null ;
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
@@ -179,6 +165,18 @@ public class Extractor {
             e.printStackTrace();
         }
 
+        return null;
+    }
+
+    private String findFuncName(List<Pair<String, Integer>> funcPatterns, String response) {
+        String func_name;
+        for (Pair<String, Integer> pair: funcPatterns) {
+            Pattern funcNamePattern = Pattern.compile(pair.first);
+            Matcher m = funcNamePattern.matcher(response);
+
+            if (m.find())
+                return m.group("sig");
+        }
         return null;
     }
 
