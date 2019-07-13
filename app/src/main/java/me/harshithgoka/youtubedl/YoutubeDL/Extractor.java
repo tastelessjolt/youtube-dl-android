@@ -134,21 +134,17 @@ public class Extractor {
                 funcPatterns.add(new Pair<>("\\bc\\s*&&\\s*[a-zA-Z0-9]+\\.set\\([^,]+\\s*,\\s*\\([^)]*\\)\\s*\\(\\s*(?P<sig>[a-zA-Z0-9$]+)\\(", 1));
 
                 func_name = findFuncName(funcPatterns, response);
-                if (func_name == null) {
+                if (func_name == null || func_name.isEmpty()) {
+                    Log.e("DECSIG", "Couldn't find func name. (New function name detected)");
                     return null;
                 }
 
 
 
-                if (func_name.isEmpty()){
-                    this.func_name = func_name;
-                    Fun fun = jsInterpreter.extractFunction(func_name);
-                    jsInterpreter.setSigFun(fun);
+                Fun fun = jsInterpreter.extractFunction(func_name);
+                jsInterpreter.setSigFun(fun);
 
-                    player_cache.put(playerID, jsInterpreter);
-                } else {
-                    return null ;
-                }
+                player_cache.put(playerID, jsInterpreter);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -208,8 +204,12 @@ public class Extractor {
         
         String sig = extractSignatureFunction(video_id, player_url, s);
 
-        Log.d(TAG + "enc", s);
-        Log.d(TAG + "dec", sig);
+        if (sig == null) {
+            return null;
+        }
+
+        Log.d(TAG + "enc", "" + s);
+        Log.d(TAG + "dec", "" + sig);
         Log.d(TAG, video_id);
         Log.d(TAG, player_url);
 
